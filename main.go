@@ -28,5 +28,12 @@ func main() {
     return block
   }
 
-
+  func (chain *BlockChain) AddBlock(data string) {
+    prevBlock := chain.blocks[len(chain.blocks)-1] // 'len(chain.blocks)-1 gets the index of current latest block (i.e. previous block)'
+    // ^ Get old block to get hash to create new block
+    new := CreateBlock(data, prevBlock.Hash)
+    // ^ Create new block
+    chain.blocks = append(chain.blocks, new)
+    // ^ Append new block to chain
+  }
 }
