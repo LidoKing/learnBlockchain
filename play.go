@@ -5,7 +5,18 @@ import (
   "log"
   "bytes"
   "encoding/binary"
+  "math/big"
 )
+
+func WhatIsLeftShift() {
+  target := big.NewInt(10)
+  fmt.Println("old result:", target)
+
+  target.Lsh(target, uint(2))
+  // ^ Lsh() (i.e. 'target' times 2 by (256-Difficulty) times)
+  // 3: [0 0 1 1] --(left shift all 1 by 2 bit)>> 12: [1 1 0 0]
+  fmt.Println("new result:", target)
+}
 
 // Convert int into byte with length: 8 and greatest number is 255 for each index/element
 // 255 -> [0 0 0 0 0 0 0 255], 256 [0 0 0 0 0 0 1 0]
@@ -45,7 +56,5 @@ func WhatIsSliceOfByte() []byte {
 }
 
 func main() {
-  fmt.Println(ToHex(2))
-  fmt.Println(ToHex(3))
-  fmt.Println(WhatIsSliceOfByte())
+  WhatIsLeftShift()
 }
