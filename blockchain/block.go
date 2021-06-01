@@ -21,6 +21,7 @@ func (b *Block) DeriveHash() { // (b *Block) 'gets instance' of block struct to 
   hash := sha256.Sum256(info)
   // ^ This performs the actual hashing algorithm
   b.Hash = hash[:]
+  // ^ Convert [32]byte into []byte
 }
 
 func CreateBlock(data string, prevHash []byte) *Block {
