@@ -8,6 +8,7 @@ import (
   "math/big"
   "crypto/sha256"
   "math"
+  "reflect"
 )
 
 /*-------------------------------basics-------------------------------*/
@@ -131,14 +132,16 @@ func Run() {
 }
 
 func Compare() {
-  //var initHash big.Int
+  var initHash big.Int
   var hash [32]byte
-  //initHash.SetBytes([)
-  fmt.Println(hash[:])
+  fmt.Println(reflect.TypeOf(hash))
+  test := initHash.SetBytes(hash[:])
+  // ^ Turn byte into big integer
+  fmt.Println(reflect.TypeOf(test))
 }
 
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  Run()
+  Compare()
 }
