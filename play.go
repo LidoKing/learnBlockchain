@@ -7,6 +7,7 @@ import (
   "encoding/binary"
   "math/big"
   "crypto/sha256"
+  "math"
 )
 
 /*-------------------------------basics-------------------------------*/
@@ -87,12 +88,12 @@ func ToHex(num int64) []byte {
   return buff.Bytes()
 }
 
-
+// Create 'data' including nonce for hashing
 func InitNonce(nonce int) []byte {
   data := bytes.Join(
     [][]byte{
       ToHex(int64(nonce)),
-      ToHex(int64(12)),
+      ToHex(int64(250)),
     },
     []byte{},
   )
@@ -100,8 +101,44 @@ func InitNonce(nonce int) []byte {
   return data
 }
 
+func Run() {
+  var intHash big.Int
+  var hash [32]byte
+
+  target := big.NewInt(1)
+  target.Lsh(target, uint(254))
+  nonce := 0
+    // This is essentially an infinite loop due to how large
+    // MaxInt64 is.
+
+  for nonce < math.MaxInt64 {
+    data := InitNonce(nonce)
+    hash = sha256.Sum256(data)
+
+    fmt.Printf("Hash: %x\n", hash)
+    intHash.SetBytes(hash[:])
+    fmt.Println(intHash.Cmp(target))
+
+    if intHash.Cmp(target) == -1 {
+    // ^ Compare big.Int, -1 if match, 1 if not match
+      break
+    } else {
+      nonce++
+    }
+  }
+  fmt.Println()
+  fmt.Printf("nonce: %d\n", nonce)
+}
+
+func Compare() {
+  //var initHash big.Int
+  var hash [32]byte
+  //initHash.SetBytes([)
+  fmt.Println(hash[:])
+}
+
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  HashedByte("hello world")
+  Run()
 }
