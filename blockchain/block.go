@@ -18,9 +18,14 @@ type BlockChain struct{
 
 func CreateBlock(data string, prevHash []byte) *Block {
   block := &Block{[]byte{}, []byte(data), prevHash, 0}
-  // ^ Create block given current data and hash of previous block
-  block.DeriveHash()
-  // ^ Generate hash of current block
+  // ^ Create block with only data and hash of previous block, other fields (hash, nonce) empty
+  pow := NewProofOfWork(block)
+  nonce, hash := pow.Run()
+  // ^ Get noncce and hash of block after mined
+
+  block.Hash = hash[:]
+  block.Nonce = nonce
+
   return block
 }
 
