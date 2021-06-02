@@ -10,7 +10,7 @@ import (
   "math/big"
 )
 
-const Difficulty = 12
+const Difficulty = 15
 // ^ For simplicity, mining difficulty remains constant
 
 type ProofOfWork struct {
@@ -18,7 +18,7 @@ type ProofOfWork struct {
   Target *big.Int
 }
 
-func NewProof(b *Block) *ProofOfWork {
+func NewProofOfWork(b *Block) *ProofOfWork {
   target := big.NewInt(1)
   target.Lsh(target, uint(256-Difficulty))
   // ^ Lsh() == << (i.e. 'target' times 2 by (256-Difficulty) times)
@@ -65,7 +65,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
     data := pow.InitNonce(nonce)
     hash = sha256.Sum256(data)
 
-    fmt.Printf("\r%x", hash)
+    fmt.Printf("Hash: %x\n", hash)
     intHash.SetBytes(hash[:])
 
     if intHash.Cmp(pow.Target) == -1 {
@@ -75,7 +75,6 @@ func (pow *ProofOfWork) Run() (int, []byte) {
     }
   }
   fmt.Println()
-  fmt.Println(nonce)
 
   return nonce, hash[:]
 }
