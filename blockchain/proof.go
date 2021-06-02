@@ -38,6 +38,7 @@ func ToHex(num int64) []byte {
   return buff.Bytes()
 }
 
+// Create data combined with nonce for hashing
 func (pow *ProofOfWork) InitNonce(nonce int) []byte {
   data := bytes.Join(
     [][]byte{
@@ -52,6 +53,7 @@ func (pow *ProofOfWork) InitNonce(nonce int) []byte {
   return data
 }
 
+// The actual 'mining' function
 func (pow *ProofOfWork) Run() (int, []byte) {
   var intHash big.Int
   var hash [32]byte
@@ -73,6 +75,18 @@ func (pow *ProofOfWork) Run() (int, []byte) {
     }
   }
   fmt.Println()
+  fmt.Println(nonce)
 
   return nonce, hash[:]
+}
+
+func (pow *ProofOfWork) Validate() bool {
+  var intHash big.Int
+
+  data := pow.InitNonce(pow.Block.Nonce)
+
+  hash := sha256.Sum256(data)
+  intHash.SetBytes(hash[:])
+
+  return intHash.Cmp(pow.Target) == -1
 }
