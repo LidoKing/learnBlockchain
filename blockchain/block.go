@@ -9,23 +9,15 @@ type Block struct {
   Hash     []byte
   Data     []byte
   PrevHash []byte
+  Nonce    int
 }
 
 type BlockChain struct{
   Blocks []*Block
 }
 
-func (b *Block) DeriveHash() { // (b *Block) 'gets instance' of block struct to access the fields
-  info := bytes.Join([][]byte{b.Data, b.PrevHash}, []byte{})
-  // ^ This will join our previous block's relevant info with the new blocks
-  hash := sha256.Sum256(info)
-  // ^ This performs the actual hashing algorithm
-  b.Hash = hash[:]
-  // ^ Convert [32]byte into []byte
-}
-
 func CreateBlock(data string, prevHash []byte) *Block {
-  block := &Block{[]byte{}, []byte(data), prevHash}
+  block := &Block{[]byte{}, []byte(data), prevHash, 0}
   // ^ Create block given current data and hash of previous block
   block.DeriveHash()
   // ^ Generate hash of current block
