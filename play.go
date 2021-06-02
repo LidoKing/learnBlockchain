@@ -89,12 +89,14 @@ func ToHex(num int64) []byte {
   return buff.Bytes()
 }
 
+const Difficulty = 25
+
 // Create 'data' including nonce for hashing
 func InitNonce(nonce int) []byte {
   data := bytes.Join(
     [][]byte{
       ToHex(int64(nonce)),
-      ToHex(int64(250)),
+      ToHex(int64(256-Difficulty)),
     },
     []byte{},
   )
@@ -102,12 +104,14 @@ func InitNonce(nonce int) []byte {
   return data
 }
 
+var Nonce int
+
 func Run() {
   var intHash big.Int
   var hash [32]byte
 
   target := big.NewInt(1)
-  target.Lsh(target, uint(254))
+  target.Lsh(target, uint(256-Difficulty))
   nonce := 0
     // This is essentially an infinite loop due to how large
     // MaxInt64 is.
@@ -117,6 +121,7 @@ func Run() {
     hash = sha256.Sum256(data)
 
     fmt.Printf("Hash: %x\n", hash)
+    fmt.Println(nonce)
     intHash.SetBytes(hash[:])
     fmt.Println(intHash.Cmp(target))
 
@@ -128,20 +133,38 @@ func Run() {
     }
   }
   fmt.Println()
-  fmt.Printf("nonce: %d\n", nonce)
+  fmt.Printf("successful nonce: %d\n", nonce)
+  Nonce = nonce
 }
 
 func Compare() {
-  var initHash big.Int
+  var intHash big.Int
   var hash [32]byte
   fmt.Println(reflect.TypeOf(hash))
-  test := initHash.SetBytes(hash[:])
+  test := intHash.SetBytes(hash[:])
   // ^ Turn byte into big integer
   fmt.Println(reflect.TypeOf(test))
 }
 
+
+func Validate() bool {
+  var intHash big.Int
+
+  data := InitNonce(Nonce)
+
+  hash := sha256.Sum256(data)
+  intHash.SetBytes(hash[:])
+
+  target := big.NewInt(1)
+  target.Lsh(target, uint(256-Difficulty))
+
+  return intHash.Cmp(target) == -1
+}
+
+
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  Compare()
+  Run()
+  fmt.Println(Validate())
 }
