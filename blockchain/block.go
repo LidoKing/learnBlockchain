@@ -13,7 +13,7 @@ func Handle(err error) {
   }
 }
 
-// Blocks to bytes
+// Block to byte
 func (b *Block) Serialize() []byte {
   var res bytes.Buffer
   encoder := gob.NewEncoder(&res)
@@ -25,7 +25,7 @@ func (b *Block) Serialize() []byte {
   return res.Bytes()
 }
 
-// Bytes to blocks
+// Byte to block
 func Deserialize(data []byte) *Block {
   var block Block
 
