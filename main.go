@@ -13,6 +13,7 @@ type CommandLine struct {
   blockchain *blockchain.BlockChain
 }
 
+// Print all possible actions an instructions
 func (cli *CommandLine) printUsage() {
   fmt.Println()
   fmt.Println("Usage:")
@@ -20,12 +21,15 @@ func (cli *CommandLine) printUsage() {
   fmt.Println(" print -> Prints the blocks in the chain")
 }
 
+// Ensure valid input is given
 func (cli *CommandLine) validateArgs() {
-  // Check command line arguments in the form of array (e.g. >> a b c d, len(os.Args) = 4)
+  // Check command line arguments in the form of a string array
+  // with program name included (e.g. >> main.go print, len(os.Args) = 2)
   if len(os.Args) < 2 {
     cli.printUsage()
 
     // Exit application by shutting down GO routine
+    // to prevent data corruption
     runtime.Goexit()
   }
 }
@@ -53,8 +57,9 @@ func (cli *CommandLine) printChain() {
     fmt.Printf("Pow: %s\n", strconv.FormatBool(pow.Validate()))
     fmt.Println()
 
-    // Genesis block has no previous hash and therefore loop breaks
+    // Length of slice of byte is 0 = no data
     if len(block.PrevHash) == 0 {
+      // Genesis block has no previous hash and therefore loop breaks
       break
     }
   }
@@ -65,6 +70,8 @@ func (cli *CommandLine) run() {
 
   addBlockCmd := flag.NewFlagSet("add", flag.ExitOnError)
   printChainCmd := flag.NewFlagSet("print", flag.ExitOnError)
+
+  // String() params: name, value, usage
   addBlockData := addBlockCmd.String("block", "", "Block data")
 
   switch os.Args[1] {
@@ -81,6 +88,7 @@ func (cli *CommandLine) run() {
     runtime.Goexit()
   }
 
+  // Parsed() will return true if the object it was used on has been called
   if addBlockCmd.Parsed() {
     if *addBlockData == "" {
       addBlockCmd.Usage()
@@ -95,6 +103,8 @@ func (cli *CommandLine) run() {
 }
 
 func main() {
+  // defer prevents corruption of bytes that are going into database
+  // by making sure all actions are finished before closing database
   defer os.Exit(0)
   chain := blockchain.InitBlockChain()
   defer chain.Database.Close()

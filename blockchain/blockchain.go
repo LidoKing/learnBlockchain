@@ -101,6 +101,7 @@ func InitBlockChain() *BlockChain {
   return &blockchain
 }
 
+// Turn blockchain struct to iterator struct
 func (chain *BlockChain) Iterator() *BlockChainIterator {
   iter := &BlockChainIterator{chain.LastHash, chain.Database}
 
@@ -114,7 +115,8 @@ func (iter *BlockChainIterator) Next() *Block {
     item, err := txn.Get(iter.CurrentHash) // error 2
     Handle(err) // Handle error 2
 
-    // Get current block with current hash and convert it from byte to block struct
+    // Get most recent block of chain with CurrentHash
+    // and convert it from byte to block struct
     err = item.Value(func(val []byte) error { // error 1
       block = Deserialize(val)
       return nil
@@ -125,7 +127,8 @@ func (iter *BlockChainIterator) Next() *Block {
   })
   Handle(err) // Handle error 1
 
-  // Set current hash of iterator to hash of previous block for next iteration
+  // Set current hash of iterator to hash of previous block
+  // so next iteration will get the previous block (i.e. second most recent)
   iter.CurrentHash = block.PrevHash
 
   return block
