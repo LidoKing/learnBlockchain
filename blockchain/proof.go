@@ -10,8 +10,8 @@ import (
   "math/big"
 )
 
-const Difficulty = 18
-// ^ For simplicity, mining difficulty remains constant
+// Mining difficulty remains constant for simplicity
+const Difficulty = 19
 
 type ProofOfWork struct {
   Block *Block
