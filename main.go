@@ -14,6 +14,7 @@ type CommandLine struct {
 }
 
 func (cli *CommandLine) printUsage() {
+  fmt.Println()
   fmt.Println("Usage:")
   fmt.Println(" add -block BLOCK_DATA -> Add a block to the chain")
   fmt.Println(" print -> Prints the blocks in the chain")
@@ -41,6 +42,7 @@ func (cli *CommandLine) printChain() {
     block := iter.Next()
 
     // Block info
+    fmt.Println()
     fmt.Printf("Previous hash: %x\n", block.PrevHash)
     fmt.Printf("data: %s\n", block.Data)
     fmt.Printf("hash: %x\n", block.Hash)
