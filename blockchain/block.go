@@ -1,4 +1,4 @@
-
+package blockchain
 
 import (
   "log"
