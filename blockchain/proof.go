@@ -10,7 +10,7 @@ import (
   "math/big"
 )
 
-const Difficulty = 15
+const Difficulty = 18
 // ^ For simplicity, mining difficulty remains constant
 
 type ProofOfWork struct {
