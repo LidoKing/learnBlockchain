@@ -44,7 +44,18 @@ func (out *TxOutput) CanBeUnlocked(data string) bool {
 
 /*--------------------------main---------------------------*/
 
+// Create hash based on transaction in the form of bytes
+func (tx *Transaction) SetID() {
+  var encoded bytes.Buffer
+  var hash [32]byte
 
+  encode := gob.NewEncoder(&encoded)
+  err := encode.Encode(tx)
+  Handle(err)
+
+  hash = sha256.Sum256(encoded.Bytes())
+  tx.ID = hash[:]
+}
 
 func CoinbaseTx(toAddress, data string) *Transaction {
   // Set and print out default data
