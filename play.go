@@ -5,36 +5,61 @@ import (
   "log"
   "bytes"
   "encoding/binary"
+  "encoding/gob"
+  "math"
   "math/big"
   "crypto/sha256"
-  "math"
   "reflect"
 )
 
 /*-------------------------------basics-------------------------------*/
 
 func StringByte(msg string) []byte {
+  // Convert string into byte array
+  // with each character corresponding to a number in ASCII (Dec)
   result := []byte(msg)
-  // ^ Convert string into byte array with each character corresponding to a number in ASCII (Dec)
-  // Reference: http://3.bp.blogspot.com/-OCnzi-TOfKQ/VFnGx4IWnKI/AAAAAAAADIA/IlM6qC-VEWg/s1600/ascii%2Bto%2Bdec.png
 
   return result
 }
 
 func WhatIsSliceOfByte() []byte {
-  // []byte{}: an array of numbers less than 1 byte (i.e. >=255)
+  // []byte{}: an array of numbers each less than 1 byte (i.e. <=255)
 
+  // [[0 0 0 0 0 0 0 2] [0 0 0 0 0 0 0 3]] (byte in byte)
   result := [][]byte{ToHex(2), ToHex(3)}
-  // ^ [[0 0 0 0 0 0 0 2] [0 0 0 0 0 0 0 3]] (byte in byte)
 
-  joint := bytes.Join(result, []byte{})
   // Combines two dimensional slice of byte to one slice of byte
-  // ^ [0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 3]
+  // [0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 3]
+  joint := bytes.Join(result, []byte{})
 
   return joint
 }
 
+func (b *Block) StructToByte()  {
+  var encoded bytes.Buffer
+  fmt.Println(encoded)
+  fmt.Println(encoded.Bytes())
+
+  var hash [32]byte
+
+  // Include block info before hashing
+  encode := gob.NewEncoder(&encoded)
+  err := encode.Encode(b)
+  Handle(err)
+
+  // Hashing function
+  hash = sha256.Sum256(encoded.Bytes())
+  fmt.Printf("%x", hash[:])
+}
+
 /*-------------------------------block.go-------------------------------*/
+
+// Error handler
+func Handle(err error) {
+  if err != nil {
+    log.Panic(err)
+  }
+}
 
 type Block struct {
   Hash     []byte
@@ -52,9 +77,9 @@ func HashedByte(msg string) {
 
 func (b *Block) DeriveHash() { // (b *Block) 'gets instance' of block struct to access the fields
   info := bytes.Join([][]byte{b.Data, b.PrevHash}, []byte{})
-  // ^ This will join our previous block's relevant info with the new blocks
+  // ^ Join previous block's relevant info with the new block
   hash := sha256.Sum256(info)
-  // ^ This performs the actual hashing algorithm
+  // ^ Performs the actual hashing algorithm
   b.Hash = hash[:]
 }
 
@@ -83,9 +108,8 @@ func WhatIsLeftShift() {
 func ToHex(num int64) []byte {
   buff := new(bytes.Buffer)
   err := binary.Write(buff, binary.BigEndian, num)
-  if err != nil {
-    log.Panic(err)
-  }
+  Handle(err)
+
   return buff.Bytes()
 }
 
@@ -141,8 +165,9 @@ func Compare() {
   var intHash big.Int
   var hash [32]byte
   fmt.Println(reflect.TypeOf(hash))
+
+  // SetBytes() turns byte into big integer
   test := intHash.SetBytes(hash[:])
-  // ^ Turn byte into big integer
   fmt.Println(reflect.TypeOf(test))
 }
 
@@ -165,6 +190,6 @@ func Validate() bool {
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  Run()
-  fmt.Println(Validate())
+  block := &Block{[]byte{}, []byte{}, []byte{}}
+  block.StructToByte()
 }
