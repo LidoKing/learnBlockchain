@@ -63,7 +63,20 @@ func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
   return block
 }
 
+func (b *Block) HashTransactions() []byte {
+  // Array of transaction IDs
+  var txHashes [][]byte
 
+  // Final aggregated hash
+  var txHash [32]byte
+
+  for _, tx := range b.Transactions {
+    txHashes = append(txHashes, tx.ID)
+  }
+  txHash = sha256.Sum256(bytes.Join(txHashes, []byte))
+
+  return txHash[:]
+}
 
 func Genesis(coinbase *Transaction) *Block {
   return CreateBlock([]*Transaction{coinbase}, []byte{})
