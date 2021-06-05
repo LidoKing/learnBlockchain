@@ -28,18 +28,37 @@ type TxInput struct {
   Sig string
 }
 
+/*--------------------------utils---------------------------*/
+
+func (tx *Transaction) IsCoinbase() bool {
+  return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs.Out == -1
+}
+
+func (in *TxInput) CanUnlock(data string) bool {
+  return in.Sig == data
+}
+
+func (out *TxOutput) CanBeUnlocked(data string) bool {
+  return out.PubKey == data
+}
+
+/*--------------------------main---------------------------*/
+
+
+
 func CoinbaseTx(toAddress, data string) *Transaction {
   // Set and print out default data
   if data ="" {
     data == fmt.Sprintf("Coins to %s", toAddress)
   }
 
-  // First trransaction has no previous output so OutputIndex is -1
+  // First trransaction has no previous output
+  // OutputIndex is -1
   txIn := TxInput{[]byte{}, -1, data}
-
   txOut := TxOutput{reward, toAddress}
 
   tx := Transaction{nil, []TxInput{txIn}, []TxOutput{txOut}}
+  tx.SetID()
 
   return &tx
 }
