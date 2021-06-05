@@ -6,7 +6,15 @@ import (
   "encoding/gob"
 )
 
+type Block struct {
+  Hash          []byte
+  Transactions  []*Transaction
+  PrevHash      []byte
+  Nonce         int
+}
+
 /*---------------------------utils---------------------------*/
+
 func Handle(err error) {
   if err != nil {
     log.Panic(err)
@@ -38,20 +46,16 @@ func Deserialize(data []byte) *Block {
   return &block
 }
 
-/*---------------------------block---------------------------*/
-type Block struct {
-  Hash     []byte
-  Data     []byte
-  PrevHash []byte
-  Nonce    int
-}
+/*---------------------------main---------------------------*/
 
-func CreateBlock(data string, prevHash []byte) *Block {
-  block := &Block{[]byte{}, []byte(data), prevHash, 0}
-  // ^ Create block with only data and hash of previous block, other fields (hash, nonce) empty
+func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
+  // Create block with only data and hash of previous block
+  // other fields (hash, nonce) empty
+  block := &Block{[]byte{}, txs, prevHash, 0}
   pow := NewProofOfWork(block)
+
+  // Get noncce and hash of block after mined
   nonce, hash := pow.Run()
-  // ^ Get noncce and hash of block after mined
 
   block.Hash = hash[:]
   block.Nonce = nonce
@@ -59,7 +63,8 @@ func CreateBlock(data string, prevHash []byte) *Block {
   return block
 }
 
-func Genesis() *Block {
-  return CreateBlock("Genesis", []byte{})
-  // ^ Create genesis block
+
+
+func Genesis(coinbase *Transaction) *Block {
+  return CreateBlock([]*Transaction{coinbase}, []byte{})
 }
