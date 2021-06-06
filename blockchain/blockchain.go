@@ -3,9 +3,18 @@ package blockchain
 import (
   "fmt"
   "github.com/dgraph-io/badger"
+  "os"
 )
 
-const dbPath = "./tmp/blocks"
+const (
+  dbPath = "./tmp/blocks"
+
+  // Check if a blockchain exists or not
+  dbFile = "./tmpm/blocks/MANIFEST"
+
+  // Arbitrary data for filling up empty genesis
+  genesisData = "First transaction from genesis"
+)
 
 type BlockChain struct{
   LastHash []byte
@@ -17,6 +26,17 @@ type BlockChainIterator struct {
   CurrentHash []byte
   Database    *badger.DB
 }
+
+/*-------------------------------utils-------------------------------*/
+
+func DBexists() bool {
+  if _, err := os.Stat(dbFile); os.IsNotExist(err) {
+    return false
+  }
+  return true
+}
+
+/*-------------------------------main-------------------------------*/
 
 func (chain *BlockChain) AddBlock(data string) {
   var lastHash []byte
@@ -53,52 +73,69 @@ func (chain *BlockChain) AddBlock(data string) {
   Handle(err) // Handle error 3
 }
 
-func InitBlockChain() *BlockChain {
+// Only called for starting completely new chain
+func InitBlockChain(address string) *BlockChain { // miner's wallet address
   var lastHash []byte
 
-  // Open database, create if one doesn't exist
+  if DBexists() {
+    fmt.Println("Blockchain already exists, call 'ContinueBlockChain' instead.")
+    runtime.Goexit()
+  }
+
+  // Open database
   db, err := badger.Open(badger.DefaultOptions(dbPath)) // error 1
   Handle(err) // Handle error 1
 
-  err = db.Update(func(txn *badger.Txn) error { //error 4
+  err = db.Update(func(txn *badger.Txn) error { // error 2
+    // Create coinbase transaction
+    cbtx := CoinbaseTx(Address, genesisData)
 
-    // Create chain with Genesis()
-    // "lh" is name of key, no last hash also means no blocks created yet
-    if _, err := txn.Get([]byte("lh")); err == badger.ErrKeyNotFound {
-      fmt.Println("No existing blockchain found")
-      genesis := Genesis()
-      fmt.Println("Genesis proved")
+    // Create genesis block with coinbase transaction
+    genesis := Genesis(cbtx)
+    fmt.Println("Genesis created.")
 
-      // Add block to database
-      err = txn.Set(genesis.Hash, genesis.Serialize()) // error 2
-      Handle(err) // Handle error 2
+    // Add block to database
+    err = txn.Set(genesis.Hash, genesis.Serialize()) // error 3
+    Handle(err) // Handle error 3
 
-      // Update last hash in database
-      err = txn.Set([]byte("lh"), genesis.Hash) // error 4.1
+    // Set genesis block hash as last hash
+    err = txn.Set([]byte("lh"), genesis.Hash) // error 2
+    lastHash = genesis.Hash
 
-      lastHash = genesis.Hash
-
-      return err // error 4.1
-
-    } else  {
-      // Get item with key "lh" from database if a chain already exists
-      item, err := txn.Get([]byte("lh")) // error 3
-      Handle(err) //Handle error 3
-
-      err = item.Value(func(val []byte) error { // error 4.2
-        lastHash = val
-        return nil
-      })
-      Handle(err) // Handle error 4.2
-
-      return err // error 4.2
-    }
+    return err // error 2
   })
+  Handle(err) // error 2
+}
 
-  Handle(err) // Handle error 4
+// Only called for continuing with existing chain
+func ContinueBlockChain(address string) *BlockChain { // miner's wallet address
+  var lastHash []byte
 
-  blockchain := BlockChain{lastHash, db}
-  return &blockchain
+  if DBexists(dbFile) == false {
+    fmt.Println("No blockchain found, call 'InitBlockChain' to create one.")
+    runtime.Gexit()
+  }
+
+  // Open database
+  db, err := badger.Open(badger.DefaultOptions(dbPath)) // error 1
+  Handle(err) // Handle error 1
+
+  err = db.Update(func(txn *badger.Txn) error { // error 2
+    item, err := txn.Get([]byte("lh")) // error 3
+    Handle(err) // Handle error 3
+
+    err = item.Value(func(val []byte) error { // error 4
+      lastHash = val
+      return nil
+    })
+    Handle(err) // Handle error 4
+
+    return err // error 2
+  })
+  Handle(err) // Handle error 2
+
+  chain := BlockChain{lastHash, db}
+  return &chain
 }
 
 // Turn blockchain struct to iterator struct
