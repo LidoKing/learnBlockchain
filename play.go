@@ -148,7 +148,12 @@ func Run() {
     fmt.Printf("Hash: %x\n", hash)
     fmt.Println(nonce)
     intHash.SetBytes(hash[:])
-    fmt.Println(intHash.Cmp(target))
+    fmt.Prfunc DBexists() bool {
+      if _, err := os.Stat(dbFile); os.IsNotExist(err) {
+        return false
+      }
+      return true
+    }intln(intHash.Cmp(target))
 
     if intHash.Cmp(target) == -1 {
     // ^ Compare big.Int, -1 if match, 1 if not match
@@ -188,8 +193,6 @@ func Validate() bool {
 }
 
 /*-------------------------------transaction.go-------------------------------*/
-
-const dbFile = "tmp/blocks/MANIFEST"
 
 func DBexists() bool {
   if _, err := os.Stat(dbFile); os.IsNotExist(err) {
