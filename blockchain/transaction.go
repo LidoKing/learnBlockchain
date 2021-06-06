@@ -17,6 +17,7 @@ type TxOutput struct {
 }
 
 // Reference to previous TxOutput
+// Transactions that have outputs, but no inputs pointing to them are spendable
 type TxInput struct {
   // Find transaction where specific output is in
   ID []byte
