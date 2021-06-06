@@ -4,6 +4,7 @@ import (
   "fmt"
   "github.com/dgraph-io/badger"
   "os"
+  "hex"
 )
 
 const (
@@ -169,4 +170,57 @@ func (iter *BlockChainIterator) Next() *Block {
   iter.CurrentHash = block.PrevHash
 
   return block
+}
+
+func (chain *BlockChain) FindUnspentTransactions(address string) []Transaction {
+  var unspentTxs []Transaction
+
+  spentTXNs := make(map[string][]int)
+
+  iter := chain.Iterator()
+
+  for {
+    block := iter.Next()
+
+    for _, tx := range block.Transactions {
+      txID := hex.EcodeToString(tx.ID)
+
+    Outputs:
+      for outIdx, out := range tx.Outputs {
+        if spentTXNs[txID] != nil {
+          for _, spentOut := range spentTXNs[txID] {
+
+            // Checks whether index of specific TxOutput
+            // is equal to element of int array of map
+            if spentOut == outIdx {
+              continue Outputs
+            }
+          }
+        }
+        if out.CanBeUnlocked(address) {
+          unspentTxs = append(unspentTxs, *tx)
+        }
+      }
+      if tx.IsCoinbase() == false {
+        for _, in := range tx.Inputs {
+          if in.CanUnlock(address) {
+            inTxID := hex.EncodeToString(in.ID)
+            spentTXNs[inTxID] = append(spentTXNs[inTxID], in.Out)
+          }
+        }
+      }
+    }
+    if len(block.PrevHash) == 0 {
+      break
+    }
+  }
+  return unspentTxs
+}
+
+// Find unspent outputs
+func (chain *BlockChain) FindUTXO(address string) []TxOutput {
+  var UTXOs []TxOutput
+  unspentTransactions := chain.FindUnspentTransactions(address)
+
+  return UTXOs
 }
