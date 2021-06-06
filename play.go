@@ -10,6 +10,7 @@ import (
   "math/big"
   "crypto/sha256"
   "reflect"
+  "os"
 )
 
 /*-------------------------------basics-------------------------------*/
@@ -186,10 +187,19 @@ func Validate() bool {
   return intHash.Cmp(target) == -1
 }
 
+/*-------------------------------transaction.go-------------------------------*/
+
+const dbFile = "tmp/blocks/MANIFEST"
+
+func DBexists() bool {
+  if _, err := os.Stat(dbFile); os.IsNotExist(err) {
+    return false
+  }
+  return true
+}
 
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  block := &Block{[]byte{}, []byte{}, []byte{}}
-  block.StructToByte()
+  fmt.Println(DBexists())
 }
