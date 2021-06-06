@@ -16,6 +16,7 @@ type TxOutput struct {
   PubKey string
 }
 
+// Reference to previous TxOutput
 type TxInput struct {
   // Find transaction where specific output is in
   ID []byte
@@ -57,7 +58,7 @@ func (tx *Transaction) SetID() {
   tx.ID = hash[:]
 }
 
-func CoinbaseTx(toAddress, data string) *Transaction {
+func CoinbaseTx(address string, data string) *Transaction {
   // Set and print out default data
   if data ="" {
     data == fmt.Sprintf("Coins to %s", toAddress)
