@@ -36,12 +36,12 @@ func (tx *Transaction) IsCoinbase() bool {
   return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs.Out == -1
 }
 
-func (in *TxInput) CanUnlock(data string) bool {
-  return in.Sig == data
+func (in *TxInput) CanUnlock(address string) bool {
+  return in.Sig == address
 }
 
-func (out *TxOutput) CanBeUnlocked(data string) bool {
-  return out.PubKey == data
+func (out *TxOutput) CanBeUnlocked(address string) bool {
+  return out.PubKey == address
 }
 
 /*--------------------------main---------------------------*/
