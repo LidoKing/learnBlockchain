@@ -232,11 +232,6 @@ func (chain *BlockChain) FindUTXO(address string) []TxOutput {
       }
     }
   }
-<<<<<<< HEAD
-  
-=======
-
->>>>>>> 5bbdf737441010615ad0c5e4964a8e9f3cc2ab30
   return UTXOs
 }
 
