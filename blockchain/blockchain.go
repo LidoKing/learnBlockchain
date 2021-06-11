@@ -39,7 +39,7 @@ func DBexists() bool {
 
 /*-------------------------------main-------------------------------*/
 
-func (chain *BlockChain) AddBlock(data string) {
+func (chain *BlockChain) AddBlock(transactions []*Transaction) {
   var lastHash []byte
 
   // Get lastHash from database
@@ -58,7 +58,7 @@ func (chain *BlockChain) AddBlock(data string) {
   Handle(err) // Handle error 1
 
   // Create new block with hash retrieved from database
-  newBlock := CreateBlock(data, lastHash)
+  newBlock := CreateBlock(transactions, lastHash)
 
   // Add new block to database and update lastHash
   err = chain.Database.Update(func(txn *badger.Txn) error { // error 3
