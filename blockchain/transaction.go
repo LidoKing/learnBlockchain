@@ -1,5 +1,10 @@
 package blockchain
 
+import (
+  "log"
+  "hex"
+)
+
 const reward = 100
 
 type Transaction struct {
@@ -17,9 +22,9 @@ type TxOutput struct {
 }
 
 // Reference to previous TxOutput
-// Transactions that have outputs, but no inputs pointing to them are spendable
+// Transactions that have outputs, but no inputs pointing to them are spendable (UTXOs)
 type TxInput struct {
-  // Find transaction where specific output is in
+  // Point to transaction where specific output is in
   ID []byte
 
   // A transaction conaints multiple outputs
@@ -71,6 +76,42 @@ func CoinbaseTx(address string, data string) *Transaction {
   txOut := TxOutput{reward, toAddress}
 
   tx := Transaction{nil, []TxInput{txIn}, []TxOutput{txOut}}
+  tx.SetID()
+
+  return &tx
+}
+
+func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction {
+  var inputs []TxInput
+  var outputs []TxOutput
+
+  // vallidOutputs is a map!!! (with stringified transaction IDs as keys)
+  spendable, validOutputs := chain.FindSpendableOutputs(from, amount)
+
+  if spendable < amount {
+    log.Panic("Error: Not enough funds!")
+  }
+
+  // Create inputs of new transaction that points to to-be-used UTXOs
+  for txid, outs := range validOutputs {
+    // Convert stringified IDs back to slice of bytes
+    txID, err := hex.DecodeString(txid)
+    Handle(err)
+
+    for _, out := range outs {
+      input := TxInput{txID, out, from}
+      inputs = append(inputs, input)
+    }
+  }
+
+  outputs = append(outputs, TxOutput{amount, to})
+
+
+  if spendable > amount {
+    outputs = append(outputs, TxOutput{spendable - amount, from})
+  }
+
+  tx := Transaction{nil, inputs, outputs}
   tx.SetID()
 
   return &tx
