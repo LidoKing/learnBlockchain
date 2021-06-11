@@ -250,6 +250,7 @@ func (chain *BlockChain) FindSpendableOutputs(address string, sendAmount int) (i
         accumulated += out.Value
 
         // Add to-be-used UTXOs to map
+        // transaction ID as key, indices of outputs that are unspent in the transaction as value
         unspentOuts[txID] = append(unspentOuts[txID], outIdx)
 
         // No need to look for more unspent outputs when sendAmount is fulfilled
