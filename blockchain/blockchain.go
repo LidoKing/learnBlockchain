@@ -10,10 +10,8 @@ import (
 
 const (
   dbPath = "./tmp/blocks"
-
   // Check if a blockchain exists or not
-  dbFile = "./tmpm/blocks/MANIFEST"
-
+  dbFile = "./tmp/blocks/MANIFEST"
   // Arbitrary data for filling up empty genesis
   genesisData = "First transaction from genesis"
 )
@@ -31,7 +29,7 @@ type BlockChainIterator struct {
 
 /*-------------------------------utils-------------------------------*/
 
-func DBexists(db string) bool {
+func DBexists() bool {
   if _, err := os.Stat(dbFile); os.IsNotExist(err) {
     return false
   }
@@ -79,7 +77,7 @@ func (chain *BlockChain) AddBlock(transactions []*Transaction) {
 func InitBlockChain(address string) *BlockChain { // miner's wallet address
   var lastHash []byte
 
-  if DBexists(dbFile) {
+  if DBexists() {
     fmt.Println("Blockchain already exists, call 'ContinueBlockChain' instead.")
     runtime.Goexit()
   }
@@ -116,7 +114,7 @@ func InitBlockChain(address string) *BlockChain { // miner's wallet address
 func ContinueBlockChain(address string) *BlockChain { // miner's wallet address
   var lastHash []byte
 
-  if DBexists(dbFile) == false {
+  if DBexists() == false {
     fmt.Println("No blockchain found, call 'InitBlockChain' to create one.")
     runtime.Goexit()
   }
