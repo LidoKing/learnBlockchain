@@ -16,7 +16,7 @@ type CommandLine struct {
 func (cli *CommandLine) printUsage() {
   fmt.Println()
   fmt.Println("Usage:")
-  fmt.Println(" getbalance -address ADDRESSS -> Get balance of ADDRESS")
+  fmt.Println(" balance -address ADDRESSS -> Get balance of ADDRESS")
   fmt.Println(" create -address ADDRESS -> Creates a blockchain and rewards the mining fee")
   fmt.Println(" send -from FROM -to TO -amount AMOUNT -> Send coins from one address to another")
   fmt.Println(" print -> Prints the blocks in the chain")
@@ -45,7 +45,7 @@ func (cli *CommandLine) addBlock(data string) {
 
 func (cli *CommandLine) createBlockChain(address string) {
   newChain := blockchain.InitBlockChain(address)
-  newChain.Database.Close()
+  defer newChain.Database.Close()
   fmt.Println("Finished creating chain")
 }
 
@@ -103,8 +103,8 @@ func (cli *CommandLine) printChain() {
 func (cli *CommandLine) run() {
   cli.validateArgs()
 
-  getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
-  createBlockchainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
+  getBalanceCmd := flag.NewFlagSet("balance", flag.ExitOnError)
+  createBlockchainCmd := flag.NewFlagSet("create", flag.ExitOnError)
   sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
   printChainCmd := flag.NewFlagSet("print", flag.ExitOnError)
 
@@ -117,11 +117,11 @@ func (cli *CommandLine) run() {
 
   // Parse arguments for checking afterwards
   switch os.Args[1] {
-  case "getbalance":
+  case "balance":
     err := getBalanceCmd.Parse(os.Args[2:])
     blockchain.Handle(err)
 
-  case "createblockchain":
+  case "create":
     err := createBlockchainCmd.Parse(os.Args[2:])
     blockchain.Handle(err)
 
