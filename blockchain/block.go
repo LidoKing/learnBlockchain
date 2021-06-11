@@ -4,6 +4,7 @@ import (
   "log"
   "bytes"
   "encoding/gob"
+  "crypto/sha256"
 )
 
 type Block struct {
@@ -73,7 +74,7 @@ func (b *Block) HashTransactions() []byte {
   for _, tx := range b.Transactions {
     txHashes = append(txHashes, tx.ID)
   }
-  txHash = sha256.Sum256(bytes.Join(txHashes, []byte))
+  txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
 
   return txHash[:]
 }
