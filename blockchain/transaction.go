@@ -2,7 +2,11 @@ package blockchain
 
 import (
   "log"
-  "hex"
+  "encoding/hex"
+  "bytes"
+  "crypto/sha256"
+  "encoding/gob"
+  "fmt"
 )
 
 const reward = 100
@@ -38,7 +42,7 @@ type TxInput struct {
 /*--------------------------utils---------------------------*/
 
 func (tx *Transaction) IsCoinbase() bool {
-  return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs.Out == -1
+  return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs[0].Out == -1
 }
 
 func (in *TxInput) CanUnlock(address string) bool {
@@ -64,10 +68,10 @@ func (tx *Transaction) SetID() {
   tx.ID = hash[:]
 }
 
-func CoinbaseTx(address string, data string) *Transaction {
+func CoinbaseTx(toAddress string, data string) *Transaction {
   // Set and print out default data
-  if data ="" {
-    data == fmt.Sprintf("Coins to %s", toAddress)
+  if data == "" {
+    data = fmt.Sprintf("Coins to %s", toAddress)
   }
 
   // First trransaction has no previous output
@@ -92,12 +96,13 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
     log.Panic("Error: Not enough funds!")
   }
 
-  // Create inputs of new transaction that points to to-be-used UTXOs
+  // txid is key of map (string), outs is index of output that is unspent
   for txid, outs := range validOutputs {
     // Convert stringified IDs back to slice of bytes
     txID, err := hex.DecodeString(txid)
     Handle(err)
 
+    // Create inputs of new transaction that points to to-be-used UTXOs
     for _, out := range outs {
       input := TxInput{txID, out, from}
       inputs = append(inputs, input)
@@ -106,7 +111,7 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
 
   outputs = append(outputs, TxOutput{amount, to})
 
-
+  // Send change back to sender, i.e. new UTXO
   if spendable > amount {
     outputs = append(outputs, TxOutput{spendable - amount, from})
   }
