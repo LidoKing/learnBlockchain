@@ -4,7 +4,8 @@ import (
   "fmt"
   "github.com/dgraph-io/badger"
   "os"
-  "hex"
+  "encoding/hex"
+  "runtime"
 )
 
 const (
@@ -30,7 +31,7 @@ type BlockChainIterator struct {
 
 /*-------------------------------utils-------------------------------*/
 
-func DBexists() bool {
+func DBexists(db string) bool {
   if _, err := os.Stat(dbFile); os.IsNotExist(err) {
     return false
   }
@@ -78,7 +79,7 @@ func (chain *BlockChain) AddBlock(transactions []*Transaction) {
 func InitBlockChain(address string) *BlockChain { // miner's wallet address
   var lastHash []byte
 
-  if DBexists() {
+  if DBexists(dbFile) {
     fmt.Println("Blockchain already exists, call 'ContinueBlockChain' instead.")
     runtime.Goexit()
   }
@@ -89,7 +90,7 @@ func InitBlockChain(address string) *BlockChain { // miner's wallet address
 
   err = db.Update(func(txn *badger.Txn) error { // error 2
     // Create coinbase transaction
-    cbtx := CoinbaseTx(Address, genesisData)
+    cbtx := CoinbaseTx(address, genesisData)
 
     // Create genesis block with coinbase transaction
     genesis := Genesis(cbtx)
@@ -106,6 +107,9 @@ func InitBlockChain(address string) *BlockChain { // miner's wallet address
     return err // error 2
   })
   Handle(err) // error 2
+
+  chain := BlockChain{lastHash, db}
+  return &chain
 }
 
 // Only called for continuing with existing chain
@@ -114,7 +118,7 @@ func ContinueBlockChain(address string) *BlockChain { // miner's wallet address
 
   if DBexists(dbFile) == false {
     fmt.Println("No blockchain found, call 'InitBlockChain' to create one.")
-    runtime.Gexit()
+    runtime.Goexit()
   }
 
   // Open database
@@ -125,6 +129,7 @@ func ContinueBlockChain(address string) *BlockChain { // miner's wallet address
     item, err := txn.Get([]byte("lh")) // error 3
     Handle(err) // Handle error 3
 
+    // Get LastHash instance
     err = item.Value(func(val []byte) error { // error 4
       lastHash = val
       return nil
@@ -135,6 +140,7 @@ func ContinueBlockChain(address string) *BlockChain { // miner's wallet address
   })
   Handle(err) // Handle error 2
 
+  // Set LastHash instance
   chain := BlockChain{lastHash, db}
   return &chain
 }
@@ -183,7 +189,7 @@ func (chain *BlockChain) FindUnspentTransactions(address string) []Transaction {
     block := iter.Next()
 
     for _, tx := range block.Transactions {
-      txID := hex.EcodeToString(tx.ID)
+      txID := hex.EncodeToString(tx.ID)
 
       // Add content of spentTXOs for checking afterwards
       if tx.IsCoinbase() == false {
@@ -227,7 +233,7 @@ func (chain *BlockChain) FindUTXO(address string) []TxOutput {
 
   for _, tx := range unspentTransactions {
     for _, out := range tx.Outputs {
-      if CanBeUnlocked(address) {
+      if out.CanBeUnlocked(address) {
         UTXOs = append(UTXOs, out)
       }
     }
