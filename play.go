@@ -10,7 +10,9 @@ import (
   "math/big"
   "crypto/sha256"
   "reflect"
-  "os"
+  "crypto/elliptic"
+  "crypto/ecdsa"
+  "crypto/rand"
 )
 
 /*-------------------------------basics-------------------------------*/
@@ -148,12 +150,7 @@ func Run() {
     fmt.Printf("Hash: %x\n", hash)
     fmt.Println(nonce)
     intHash.SetBytes(hash[:])
-    fmt.Prfunc DBexists() bool {
-      if _, err := os.Stat(dbFile); os.IsNotExist(err) {
-        return false
-      }
-      return true
-    }intln(intHash.Cmp(target))
+    //int(intHash.Cmp(target))
 
     if intHash.Cmp(target) == -1 {
     // ^ Compare big.Int, -1 if match, 1 if not match
@@ -192,17 +189,26 @@ func Validate() bool {
   return intHash.Cmp(target) == -1
 }
 
-/*-------------------------------transaction.go-------------------------------*/
+/*-------------------------------wallet.go-------------------------------*/
 
-func DBexists() bool {
-  if _, err := os.Stat(dbFile); os.IsNotExist(err) {
-    return false
-  }
-  return true
+func NewKeyPair() {
+  curve := elliptic.P256()
+
+  private, err := ecdsa.GenerateKey(curve, rand.Reader)
+  Handle(err)
+
+  part1 := private.PublicKey.X.Bytes()
+  part2 := private.PublicKey.Y.Bytes()
+
+  public := append(part1, part2...)
+
+  fmt.Printf("Part 1: %x\n", part1)
+  fmt.Printf("Part 2: %x\n", part2)
+  fmt.Printf("Public Key: %x\n", public)
 }
 
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  fmt.Println(DBexists())
+  NewKeyPair()
 }
