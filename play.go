@@ -210,7 +210,7 @@ func NewKeyPair() []byte {
   return public
 }
 
-func Ripemd160(pubKey []byte) {
+func Ripemd160(pubKey []byte) []byte {
   pubHash :=sha256.Sum256(pubKey)
   fmt.Printf("pubHash: %x\n", pubHash)
 
@@ -223,11 +223,24 @@ func Ripemd160(pubKey []byte) {
 
   publicRipeMd := hasher.Sum(nil)
   fmt.Printf("publicRipeMd: %x\n", publicRipeMd)
+
+  return publicRipeMd
+}
+
+const checksumLength = 4
+
+func Checksum(ripeMdHash []byte) {
+  firstHash := sha256.Sum256(ripeMdHash)
+  secondHash := sha256.Sum256(firstHash[:])
+
+  // Get first four bytes
+  fmt.Printf("%x\n", secondHash[:checksumLength])
 }
 
 /*-------------------------------main-------------------------------*/
 
 func main() {
   result := NewKeyPair()
-  Ripemd160(result)
+  result1 := Ripemd160(result)
+  Checksum(result1)
 }
