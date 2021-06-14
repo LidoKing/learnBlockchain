@@ -13,6 +13,7 @@ import (
   "crypto/elliptic"
   "crypto/ecdsa"
   "crypto/rand"
+  "golang.org/x/crypto/ripemd160"
 )
 
 /*-------------------------------basics-------------------------------*/
@@ -191,7 +192,7 @@ func Validate() bool {
 
 /*-------------------------------wallet.go-------------------------------*/
 
-func NewKeyPair() {
+func NewKeyPair() []byte {
   curve := elliptic.P256()
 
   private, err := ecdsa.GenerateKey(curve, rand.Reader)
@@ -205,10 +206,28 @@ func NewKeyPair() {
   fmt.Printf("Part 1: %x\n", part1)
   fmt.Printf("Part 2: %x\n", part2)
   fmt.Printf("Public Key: %x\n", public)
+
+  return public
+}
+
+func Ripemd160(pubKey []byte) {
+  pubHash :=sha256.Sum256(pubKey)
+  fmt.Printf("pubHash: %x\n", pubHash)
+
+  hasher := ripemd160.New()
+  fmt.Printf("hasher1: %x\n", hasher)
+
+  _, err := hasher.Write(pubHash[:])
+  Handle(err)
+  fmt.Printf("hasher2: %x\n", hasher)
+
+  publicRipeMd := hasher.Sum(nil)
+  fmt.Printf("publicRipeMd: %x\n", publicRipeMd)
 }
 
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  NewKeyPair()
+  result := NewKeyPair()
+  Ripemd160(result)
 }
