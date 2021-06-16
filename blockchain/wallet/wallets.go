@@ -6,15 +6,8 @@ import (
   "encoding/gob"
   "fmt"
   "io/ioutil"
-  "log"
   "os"
 )
-
-func Handle(err error) {
-  if err != nil {
-    log.Panic(err)
-  }
-}
 
 const walletFile = "./tmp/wallets.data"
 
@@ -32,7 +25,7 @@ func (ws *Wallets) SaveFile() {
   Handle(err)
 
   // Write encoded content into designated file
-  err = ioutil.WriteFile(walletFile, content.Bytes, 0644)
+  err = ioutil.WriteFile(walletFile, content.Bytes(), 0644)
   Handle(err)
 }
 
@@ -67,22 +60,22 @@ func CreateWallets() (*Wallets, error) {
 
 func (ws *Wallets) AddWallet() string {
   wallet := MakeWallet()
-  address = fmt.Sprintf("%s", wallet.Address)
+  address := fmt.Sprintf("%s", wallet.Address())
 
   ws.Wallets[address] = wallet
 
   return address
 }
 
-func (ws *Wallets) GetWallet(address string) Wallet {
-  return ws.Wallets[address]
+func (ws Wallets) GetWallet(address string) Wallet {
+  return *ws.Wallets[address]
 }
 
 func (ws *Wallets) GetAllAddresses() []string {
   var addresses []string
 
   for address, _ := range ws.Wallets {
-    addresses := append(addresses, address)
+    addresses = append(addresses, address)
   }
 
   return addresses
