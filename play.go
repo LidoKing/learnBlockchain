@@ -56,6 +56,44 @@ func (b *Block) StructToByte()  {
   fmt.Printf("%x", hash[:])
 }
 
+/*--------------------------------gob--------------------------------*/
+
+type P struct {
+	X, Y, Z int
+	Name    string
+}
+
+type Q struct {
+	X, Y *int32
+	Name string
+}
+
+func WhatIsGob() {
+	var network bytes.Buffer        // Stand-in for a network connection
+	enc := gob.NewEncoder(&network) // Will write to network.
+	dec := gob.NewDecoder(&network) // Will read from network.
+
+	// Encode (send) some values.
+	err := enc.Encode(P{1, 4, 5, "Pythagoras"})
+	if err != nil {
+		log.Fatal("encode error:", err)
+	}
+
+  fmt.Printf("%q\n", network)
+
+	// Decode (receive) and print the values.
+	var q Q
+	err = dec.Decode(&q)
+	if err != nil {
+		log.Fatal("decode error 1:", err)
+	}
+	fmt.Printf("%q: {%d, %d}\n", q.Name, *q.X, *q.Y)
+
+	// Output:
+	// "Pythagoras": {3, 4}
+	// "Treehouse": {1782, 1841}
+}
+
 /*-------------------------------block.go-------------------------------*/
 
 // Error handler
@@ -240,7 +278,5 @@ func Checksum(ripeMdHash []byte) {
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  result := NewKeyPair()
-  result1 := Ripemd160(result)
-  Checksum(result1)
+  WhatIsGob()
 }
