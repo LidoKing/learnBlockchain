@@ -10,6 +10,12 @@ import (
   "golang.org/x/crypto/ripemd160"
 )
 
+func Handle(err error) {
+  if err != nil {
+    log.Panic(err)
+  }
+}
+
 const (
   checksumLength = 4
   version = byte(0x00)
@@ -24,9 +30,7 @@ func NewKeyPair() (ecdsa.PrivateKey, []byte) {
   curve := elliptic.P256()
 
   private, err := ecdsa.GenerateKey(curve, rand.Reader)
-  if err != nil {
-    log.Panic(err)
-  }
+  Handle(err)
 
   // concatenate two slices of bytes, append(x, y...)
   public := append(private.PublicKey.X.Bytes(), private.PublicKey.Y.Bytes()...)
@@ -49,9 +53,7 @@ func PublicKeyHash(pubKey []byte) []byte {
   hasher := ripemd160.New()
   // Write pubKey into hasher
   _, err := hasher.Write(pubHash[:])
-  if err != nil {
-    log.Panic(err)
-  }
+  Handle(err)
 
   // Actual hashing
   publicRipeMd := hasher.Sum(nil)
