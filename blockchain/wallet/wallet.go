@@ -8,12 +8,11 @@ import (
   "log"
 
   "golang.org/x/crypto/ripemd160"
-  "github.com/LidoKing/learnBlockchain/blockchain"
 )
 
 const (
   checksumLength = 4
-  version = byte{0x00}
+  version = byte(0x00)
 )
 
 type Wallet struct {
@@ -25,7 +24,9 @@ func NewKeyPair() (ecdsa.PrivateKey, []byte) {
   curve := elliptic.P256()
 
   private, err := ecdsa.GenerateKey(curve, rand.Reader)
-  Handle(err)
+  if err != nil {
+    log.Panic(err)
+  }
 
   // concatenate two slices of bytes, append(x, y...)
   public := append(private.PublicKey.X.Bytes(), private.PublicKey.Y.Bytes()...)
@@ -48,33 +49,31 @@ func PublicKeyHash(pubKey []byte) []byte {
   hasher := ripemd160.New()
   // Write pubKey into hasher
   _, err := hasher.Write(pubHash[:])
-  Handle(err)
+  if err != nil {
+    log.Panic(err)
+  }
 
   // Actual hashing
   publicRipeMd := hasher.Sum(nil)
   return publicRipeMd
 }
 
-func Checksum(ripeMdHash []byte) []byte {
-  firstHash := sha256.Sum256(ripeMdHash)
+func Checksum(versionedHash []byte) []byte {
+  firstHash := sha256.Sum256(versionedHash)
   secondHash := sha256.Sum256(firstHash[:])
 
   // Get first four bytes
   return secondHash[:checksumLength]
 }
 
-func (w Wallet) Address() {
+func (w Wallet) Address() []byte {
    pubHash := PublicKeyHash(w.PublicKey)
 
-   vevrsionedHash := append([]byte{version}, pubHash...)
+   versionedHash := append([]byte{version}, pubHash...)
    checksum := Checksum(versionedHash)
 
    finalHash := append(versionedHash, checksum...)
    address := Base58Encode(finalHash)
-
-   fmt.Printf("Public key: %x\n", w.PublicKey)
-   fmt.Printf("Public hash: %x\n", pubHash)
-   fmt.Printf("Address: %x\n", address)
 
    return address
 }

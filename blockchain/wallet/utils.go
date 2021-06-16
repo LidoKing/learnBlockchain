@@ -4,7 +4,6 @@ import (
   "log"
 
   "github.com/mr-tron/base58"
-  "github.com/LidoKing/learnBlockchain/blockchain"
 )
 
 // base58 encode gives shorter output and prevents character identification issues
@@ -19,7 +18,9 @@ func Base58Encode(input []byte) []byte {
 func Base58Decode(input []byte) []byte {
   // typecast slice of bytes to string
   decode, err := base58.Decode(string(input[:]))
-  Handle(err)
+  if err != nil {
+    log.Panic(err)
+  }
 
   return decode
 }
