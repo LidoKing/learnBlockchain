@@ -6,7 +6,9 @@ import (
   "runtime"
   "flag"
   "os"
+
   "github.com/LidoKing/learnBlockchain/blockchain"
+  "github.com/LidoKing/learnBlockchain/blockchain/wallet"
 )
 
 type CommandLine struct {
@@ -20,6 +22,8 @@ func (cli *CommandLine) printUsage() {
   fmt.Println(" create -address ADDRESS -> Creates a blockchain and rewards the mining fee")
   fmt.Println(" send -from FROM -to TO -amount AMOUNT -> Send coins from one address to another")
   fmt.Println(" print -> Prints the blocks in the chain")
+  fmt.Println(" createwallet -> Creates a new wallet")
+  fmt.Println(" listaddresses -> Lists all existing addresses")
 }
 
 // Ensure valid input is given
@@ -100,13 +104,32 @@ func (cli *CommandLine) printChain() {
   }
 }
 
+func (cli *CommandLine) listAddresses() {
+  wallets, _ := wallet.CreateWallets()
+  addresses := wallets.GetAllAddresses()
+
+  for index, address := range addresses {
+    fmt.Printf("%d: %s\n", index, address)
+  }
+}
+
+func (cli *CommandLine) createWallet() {
+  wallets, _ := wallet.CreateWallets()
+  address := wallets.AddWallet()
+  wallets.SaveFile()
+
+  fmt.Printf("New address created: %s\n", address)
+}
+
 func (cli *CommandLine) Run() {
   cli.validateArgs()
 
   getBalanceCmd := flag.NewFlagSet("balance", flag.ExitOnError)
-  createBlockchainCmd := flag.NewFlagSet("create", flag.ExitOnError)
+  createBlockchainCmd := flag.NewFlagSet("createchain", flag.ExitOnError)
   sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
   printChainCmd := flag.NewFlagSet("print", flag.ExitOnError)
+  createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
+  listAddressesCmd := flag.NewFlagSet("listaddresses", flag.ExitOnError)
 
   // String() params: name, value, usage
   getBalanceAddress := getBalanceCmd.String("address", "", "The address to get balance for")
@@ -121,7 +144,7 @@ func (cli *CommandLine) Run() {
     err := getBalanceCmd.Parse(os.Args[2:])
     blockchain.Handle(err)
 
-  case "create":
+  case "createchain":
     err := createBlockchainCmd.Parse(os.Args[2:])
     blockchain.Handle(err)
 
@@ -131,6 +154,14 @@ func (cli *CommandLine) Run() {
 
   case "send":
     err := sendCmd.Parse(os.Args[2:])
+    blockchain.Handle(err)
+
+  case "createwallet":
+    err := createWalletCmd.Parse(os.Args[2:])
+    blockchain.Handle(err)
+
+  case "listaddresses":
+    err := listAddressesCmd.Parse(os.Args[2:])
     blockchain.Handle(err)
 
   default:
@@ -165,5 +196,13 @@ func (cli *CommandLine) Run() {
       runtime.Goexit()
     }
     cli.send(*sendFrom, *sendTo, *sendAmount)
+  }
+
+  if createWalletCmd.Parsed() {
+    cli.createWallet()
+  }
+
+  if listAddressesCmd.Parsed() {
+    cli.listAddresses()
   }
 }
