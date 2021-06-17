@@ -74,8 +74,23 @@ func (w Wallet) Address() []byte {
    versionedHash := append([]byte{version}, pubHash...)
    checksum := Checksum(versionedHash)
 
-   finalHash := append(versionedHash, checksum...)
-   address := Base58Encode(finalHash)
+   fullHash := append(versionedHash, checksum...)
+   address := Base58Encode(fullHash)
 
    return address
+}
+
+// Validation process:
+// 1. Decode address back to full hash
+// 2. Separate version public key hash and checksum
+// 3. Create new checksum with public key hash and same version
+// 4. Compare new cheksum and original checksum
+func ValidateAddress(address string) bool {
+  fullHash := Base58Decode(address)
+  actualChecksum := fullHash[len(fullHash)-checksumLength:]
+  version := fullHash[0]
+  pubKeyHash = fullHash[1:len(fullHash)-checksumLength]
+  targetChecksum := Cheksum(append([]byte{version}, pubKeyHash))
+
+  return bytes.Compare(actualChecksum, targetChecksum) == 0
 }
