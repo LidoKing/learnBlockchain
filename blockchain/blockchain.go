@@ -176,7 +176,7 @@ func (iter *BlockChainIterator) Next() *Block {
   return block
 }
 
-func (chain *BlockChain) FindUnspentTransactions(address string) []Transaction {
+func (chain *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
   var unspentTxs []Transaction
 
   spentTXOs := make(map[string][]int)
@@ -265,4 +265,47 @@ func (chain *BlockChain) FindSpendableOutputs(address string, sendAmount int) (i
     }
   }
   return accumulated, unspentOuts
+}
+
+func (bc *BlockChain) FindTransaction(ID []byte) (Transaction, error) {
+  iter := bc.Iterator()
+
+  for {
+    block := iter.Next()
+
+    for _,tx := range block.Transactions {
+      if bytes.Compare(tx.ID, ID) == 0 {
+        return *tx, nil
+      }
+    }
+
+    if len(block.PrevHash) == 0 {
+      break
+    }
+  }
+  return Transaction{}, errors.New("Transaction does not exist")
+}
+
+func (bc *BlockChain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey) {
+  prevTXs := make(map[string]Trtansaction)
+
+  for _, in := range tx.Inputs {
+    prevTX, err := bc.FindTransaction(in.ID)
+    Handle(err)
+    prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
+  }
+
+  tx.Sign(privateKey, prevTXs)
+}
+
+func (bc *BlockChain) VerifyTransaction(tx *Transaction) bool {
+  prevTXs := make(map[string]Transaction)
+
+  for _, in := range tx.Inputs {
+    prevTx, err := bc.FindTransaction(in.ID)
+    Handle(err)
+    prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
+  }
+
+  tx.Verify(prevTXs)
 }
