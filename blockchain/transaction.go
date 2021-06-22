@@ -228,10 +228,12 @@ func (tx *Transaction) String() string {
 		lines = append(lines, fmt.Sprintf("       PubKey:    %x", input.PubKey))
   }
 
+  fmt.Println()
+
   for i, output := range tx.Outputs {
     lines = append(lines, fmt.Sprintf("     Output %d:", i))
 		lines = append(lines, fmt.Sprintf("       Value:  %d", output.Value))
-		lines = append(lines, fmt.Sprintf("       Script: %x", output.PubKeyHash))
+		lines = append(lines, fmt.Sprintf("       PubKeyHash: %x", output.PubKeyHash))
   }
 
   return strings.Join(lines, "\n")

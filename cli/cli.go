@@ -19,7 +19,7 @@ func (cli *CommandLine) printUsage() {
   fmt.Println()
   fmt.Println("Usage:")
   fmt.Println(" balance -address ADDRESSS -> Get balance of ADDRESS")
-  fmt.Println(" create -address ADDRESS -> Creates a blockchain and rewards the mining fee")
+  fmt.Println(" createchain -address ADDRESS -> Creates a blockchain and rewards the mining fee")
   fmt.Println(" send -from FROM -to TO -amount AMOUNT -> Send coins from one address to another")
   fmt.Println(" print -> Prints the blocks in the chain")
   fmt.Println(" createwallet -> Creates a new wallet")
