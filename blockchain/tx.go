@@ -1,4 +1,4 @@
-package blockchain
+ package blockchain
 
 import (
   "github.com/LidoKing/learnBlockchain/blockchain/wallet"
@@ -8,18 +8,17 @@ type TxOutput struct {
   // Representative of the amount of tokens in a transaction
   Value int
 
-  // Unlock tokens for transaction
+  // Hash for the address taht 'owns' the output
   PubKeyHash []byte
 }
 
 // Reference to previous TxOutput
 // Transactions that have outputs, but no inputs pointing to them are spendable (UTXOs)
 type TxInput struct {
-  // Point to transaction where specific output is in
+  // Points to transaction where output is in
   ID []byte
 
-  // A transaction has multiple outputs
-  // 'Out' specifies index of output to deal with
+  // Index of output that input points to
   Out int
   Sig []byte
   PubKey []byte
