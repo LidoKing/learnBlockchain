@@ -6,7 +6,7 @@ import (
   "runtime"
   "flag"
   "os"
-
+  "log"
   "github.com/LidoKing/learnBlockchain/blockchain"
   "github.com/LidoKing/learnBlockchain/blockchain/wallet"
 )

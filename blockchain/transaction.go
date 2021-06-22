@@ -5,9 +5,14 @@ import (
   "encoding/hex"
   "bytes"
   "crypto/sha256"
+  "crypto/ecdsa"
+  "crypto/elliptic"
+  "crypto/rand"
   "encoding/gob"
   "fmt"
   "strings"
+  "math/big"
+  "github.com/LidoKing/learnBlockchain/blockchain/wallet"
 )
 
 const reward = 100
@@ -69,7 +74,7 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
   var inputs []TxInput
   var outputs []TxOutput
 
-  wallets, err := wallets.CreateWallets()
+  wallets, err := wallet.CreateWallets()
   Handle(err)
   w:= wallets.GetWallet(from)
   pubKeyHash := wallet.PublicKeyHash(w.PublicKey)
@@ -113,9 +118,9 @@ func (tx *Transaction) Hash() []byte {
   var hash [32]byte
 
   txCopy := *tx
-  txCopy.ID := []byte{}
+  txCopy.ID = []byte{}
 
-  hash := sha256.Sum256(txCopy.Serialize())
+  hash = sha256.Sum256(txCopy.Serialize())
 
   return hash[:]
 }
@@ -125,14 +130,14 @@ func (tx *Transaction) TrimmedCopy() Transaction {
   var outputs []TxOutput
 
   for _, in := range tx.Inputs {
-    inputs = append(inputs, TxInput{in.Id, in.Out, nil, nil})
+    inputs = append(inputs, TxInput{in.ID, in.Out, nil, nil})
   }
 
   for _, out := range tx.Outputs {
-    outputs := append(outputs, TxPutput{out .Value, out.PubKeyHash})
+    outputs = append(outputs, TxOutput{out .Value, out.PubKeyHash})
   }
 
-  txCopy := Transaction{tx.Id, inputs, outputs}
+  txCopy := Transaction{tx.ID, inputs, outputs}
 
   return txCopy
 }
@@ -153,19 +158,19 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTXs map[string]Tran
 
   for inId, in := range txCopy.Inputs {
     // Get transaction where the input points to
-    prevTx := prevTXs[hex.EncodeToString(in.ID)]
-    txCopy.Inputs[inId].Signature = nil
+    prevTX := prevTXs[hex.EncodeToString(in.ID)]
+    txCopy.Inputs[inId].Sig = nil
     // Set PubKey field for signing
     txCopy.Inputs[inId].PubKey = prevTX.Outputs[in.Out].PubKeyHash
     txCopy.ID = txCopy.Hash()
     // Clear PubKey field for transaction verififcation afterwards
-    txCopy.Inupts[inId].PubKey = nil
+    txCopy.Inputs[inId].PubKey = nil
 
     r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopy.ID)
     Handle(err)
-    signature := append(r.Bytes(), s.Bytes())
+    signature := append(r.Bytes(), s.Bytes()...)
 
-    tx.Inputs[inId].Signature = signature
+    tx.Inputs[inId].Sig = signature
   }
 }
 
@@ -185,7 +190,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 
   for inId, in := range tx.Inputs {
     prevTx := prevTXs[hex.EncodeToString(in.ID)]
-		txCopy.Inputs[inId].Signature = nil
+		txCopy.Inputs[inId].Sig = nil
 		txCopy.Inputs[inId].PubKey = prevTx.Outputs[in.Out].PubKeyHash
 		txCopy.ID = txCopy.Hash()
 	  txCopy.Inputs[inId].PubKey = nil
@@ -193,16 +198,22 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
     r := big.Int{}
     s:= big.Int{}
 
-    sigLen := len(in.Signature)
-    r.SetBytes(in.Signature[:(sigLen / 2)])
-    s.SetBytes(in.Signature[(sigLen / 2):])
+    sigLen := len(in.Sig)
+    r.SetBytes(in.Sig[:(sigLen / 2)])
+    s.SetBytes(in.Sig[(sigLen / 2):])
 
     x := big.Int{}
     y := big.Int{}
     keyLen := len(in.PubKey)
     x.SetBytes(in.PubKey[:(keyLen / 2)])
 		y.SetBytes(in.PubKey[(keyLen / 2):])
+
+    rawPubKey := ecdsa.PublicKey{curve, &x, &y}
+    if ecdsa.Verify(&rawPubKey, txCopy.ID, &r, &s) == false {
+      return false
+    }
   }
+  return true
 }
 
 func (tx *Transaction) String() string {
@@ -213,7 +224,7 @@ func (tx *Transaction) String() string {
     lines = append(lines, fmt.Sprintf("     Input %d:", i))
 		lines = append(lines, fmt.Sprintf("       TXID:     %x", input.ID))
 		lines = append(lines, fmt.Sprintf("       Out:       %d", input.Out))
-		lines = append(lines, fmt.Sprintf("       Signature: %x", input.Signature))
+		lines = append(lines, fmt.Sprintf("       Signature: %x", input.Sig))
 		lines = append(lines, fmt.Sprintf("       PubKey:    %x", input.PubKey))
   }
 

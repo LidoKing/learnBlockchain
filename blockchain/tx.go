@@ -1,6 +1,7 @@
  package blockchain
 
 import (
+  "bytes"
   "github.com/LidoKing/learnBlockchain/blockchain/wallet"
 )
 
@@ -44,7 +45,7 @@ func (out *TxOutput) IsLockedWithKey(pubKeyHash []byte) bool {
 }
 
 func NewTXOutput(value int, address string) *TxOutput {
-  txo := &TxOuput{value, nil}
+  txo := &TxOutput{value, nil}
   txo.Lock([]byte(address))
 
   return txo

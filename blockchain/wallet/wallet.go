@@ -6,7 +6,7 @@ import (
   "crypto/rand"
   "crypto/sha256"
   "log"
-
+  "bytes"
   "golang.org/x/crypto/ripemd160"
 )
 
@@ -86,11 +86,11 @@ func (w Wallet) Address() []byte {
 // 3. Create new checksum with public key hash and same version
 // 4. Compare new cheksum and original checksum
 func ValidateAddress(address string) bool {
-  fullHash := Base58Decode(address)
+  fullHash := Base58Decode([]byte(address))
   actualChecksum := fullHash[len(fullHash)-checksumLength:]
   version := fullHash[0]
-  pubKeyHash = fullHash[1:len(fullHash)-checksumLength]
-  targetChecksum := Cheksum(append([]byte{version}, pubKeyHash))
+  pubKeyHash := fullHash[1:len(fullHash)-checksumLength]
+  targetChecksum := Checksum(append([]byte{version}, pubKeyHash...))
 
   return bytes.Compare(actualChecksum, targetChecksum) == 0
 }

@@ -6,6 +6,9 @@ import (
   "os"
   "encoding/hex"
   "runtime"
+  "bytes"
+  "errors"
+  "crypto/ecdsa"
 )
 
 const (
@@ -222,7 +225,7 @@ func (chain *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transactio
       break
     }
   }
-  return unspentTxs
+  return unspentTXs
 }
 
 // From transactions that contains unspent outputs to unspent ouputs
@@ -288,7 +291,7 @@ func (bc *BlockChain) FindTransaction(ID []byte) (Transaction, error) {
 }
 
 func (bc *BlockChain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey) {
-  prevTXs := make(map[string]Trtansaction)
+  prevTXs := make(map[string]Transaction)
 
   for _, in := range tx.Inputs {
     prevTX, err := bc.FindTransaction(in.ID)
@@ -303,10 +306,10 @@ func (bc *BlockChain) VerifyTransaction(tx *Transaction) bool {
   prevTXs := make(map[string]Transaction)
 
   for _, in := range tx.Inputs {
-    prevTx, err := bc.FindTransaction(in.ID)
+    prevTX, err := bc.FindTransaction(in.ID)
     Handle(err)
     prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
   }
 
-  tx.Verify(prevTXs)
+  return tx.Verify(prevTXs)
 }
