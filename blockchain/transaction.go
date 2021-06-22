@@ -35,16 +35,17 @@ func (tx *Transaction) Serialize() []byte {
 
 /*--------------------------main---------------------------*/
 
-// Convert transaction into bytes then hash it to get ID
-func (tx *Transaction) Hash() []byte {
+// Create hash as transaction ID
+func (tx *Transaction) SetID() {
+  var encoded bytes.Buffer
   var hash [32]byte
 
-  txCopy := *tx
-  txCopy.ID := []byte{}
+  encode := gob.NewEncoder(&encoded)
+  err := encode.Encode(tx)
+  Handle(err)
 
-  hash := sha256.Sum256(txCopy.Serialize())
-
-  return hash[:]
+  hash = sha256.Sum256(encoded.Bytes())
+  tx.ID = hash[:]
 }
 
 func CoinbaseTx(toAddress string, data string) *Transaction {
@@ -55,10 +56,10 @@ func CoinbaseTx(toAddress string, data string) *Transaction {
 
   // First trransaction has no previous output
   // OutputIndex is -1
-  txIn := TxInput{[]byte{}, -1, data}
-  txOut := TxOutput{reward, toAddress}
+  txIn := TxInput{[]byte{}, -1, nil, []byte(data)}
+  txOut := NewTXOutput(100, toAddress)
 
-  tx := Transaction{nil, []TxInput{txIn}, []TxOutput{txOut}}
+  tx := Transaction{nil, []TxInput{txIn}, []TxOutput{*txOut}}
   tx.SetID()
 
   return &tx
@@ -68,8 +69,13 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
   var inputs []TxInput
   var outputs []TxOutput
 
+  wallets, err := wallets.CreateWallets()
+  Handle(err)
+  w:= wallets.GetWallet(from)
+  pubKeyHash := wallet.PublicKeyHash(w.PublicKey)
+
   // vallidOutputs is a map!!! (with stringified transaction IDs as keys)
-  spendable, validOutputs := chain.FindSpendableOutputs(from, amount)
+  spendable, validOutputs := chain.FindSpendableOutputs(pubKeyHash, amount)
 
   if spendable < amount {
     log.Panic("Error: Not enough funds!")
@@ -83,22 +89,35 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
 
     // Create inputs of new transaction that points to to-be-used UTXOs
     for _, out := range outs {
-      input := TxInput{txID, out, from}
+      input := TxInput{txID, out, nil, w.PublicKey}
       inputs = append(inputs, input)
     }
   }
 
-  outputs = append(outputs, TxOutput{amount, to})
+  outputs = append(outputs, *NewTXOutput(amount, to))
 
   // Send change back to sender, i.e. new UTXO
   if spendable > amount {
-    outputs = append(outputs, TxOutput{spendable - amount, from})
+    outputs = append(outputs, TxOutput{spendable - amount, pubKeyHash})
   }
 
   tx := Transaction{nil, inputs, outputs}
-  tx.SetID()
+  tx.Hash()
+  chain.SignTransaction(&tx, w.PrivateKey)
 
   return &tx
+}
+
+// Convert transaction into bytes then hash it to get ID
+func (tx *Transaction) Hash() []byte {
+  var hash [32]byte
+
+  txCopy := *tx
+  txCopy.ID := []byte{}
+
+  hash := sha256.Sum256(txCopy.Serialize())
+
+  return hash[:]
 }
 
 func (tx *Transaction) TrimmedCopy() Transaction {
@@ -206,17 +225,3 @@ func (tx *Transaction) String() string {
 
   return strings.Join(lines, "\n")
 }
-
-/*
-// Create hash based on transaction in the form of bytes
-func (tx *Transaction) SetID() {
-  var encoded bytes.Buffer
-  var hash [32]byte
-
-  encode := gob.NewEncoder(&encoded)
-  err := encode.Encode(tx)
-  Handle(err)
-
-  hash = sha256.Sum256(encoded.Bytes())
-  tx.ID = hash[:]
-}*/
