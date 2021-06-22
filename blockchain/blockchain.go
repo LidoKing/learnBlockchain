@@ -74,7 +74,7 @@ func (chain *BlockChain) AddBlock(transactions []*Transaction) {
 }
 
 // Only called for starting completely new chain
-func InitBlockChain(address string) *BlockChain { // miner's wallet address
+func InitBlockChain(address string) *BlockChain { // miner's wallet pubKeyHash
   var lastHash []byte
 
   if DBexists() {
@@ -111,7 +111,7 @@ func InitBlockChain(address string) *BlockChain { // miner's wallet address
 }
 
 // Only called for continuing with existing chain
-func ContinueBlockChain(address string) *BlockChain { // miner's wallet address
+func ContinueBlockChain(address string) *BlockChain { // miner's wallet pubKeyHash
   var lastHash []byte
 
   if DBexists() == false {
@@ -177,7 +177,7 @@ func (iter *BlockChainIterator) Next() *Block {
 }
 
 func (chain *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
-  var unspentTxs []Transaction
+  var unspentTXs []Transaction
 
   spentTXOs := make(map[string][]int)
 
@@ -189,10 +189,10 @@ func (chain *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transactio
     for _, tx := range block.Transactions {
       txID := hex.EncodeToString(tx.ID)
 
-      // Add content of spentTXOs for checking afterwards
+      // Get all spent outputs
       if tx.IsCoinbase() == false {
         for _, in := range tx.Inputs {
-          if in.CanUnlock(address) {
+          if in.UsesKey(pubKeyHash) {
             inTxID := hex.EncodeToString(in.ID)
             spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Out)
           }
@@ -202,21 +202,22 @@ func (chain *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transactio
       Outputs:
       for outIdx, out := range tx.Outputs {
         if spentTXOs[txID] != nil {
-          for _, spentOut := range spentTXOs[txID] {
-            // Checks whether element of int array of map
-            // is equal to index of the iterating TxOutput
-            // Output is spent if matches, so skip the output
-            if spentOut == outIdx {
+          for _, spentOutIdx := range spentTXOs[txID] {
+            // Output is a spent one if matches, so skip further checking
+            if spentOutIdx == outIdx {
               continue Outputs
             }
           }
         }
-        // Check if unspent outputs can be unlocked provided that they exist
-        if out.CanBeUnlocked(address) {
-          unspentTxs = append(unspentTxs, *tx)
+
+        // Loop doesn't end as indeices do not match
+        // Check if unspent outputs can be unlocked provided that they are unspent
+        if out.IsLockedWithKey(pubKeyHash) {
+          unspentTXs = append(unspentTXs, *tx)
         }
       }
     }
+
     if len(block.PrevHash) == 0 {
       break
     }
@@ -225,13 +226,13 @@ func (chain *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transactio
 }
 
 // From transactions that contains unspent outputs to unspent ouputs
-func (chain *BlockChain) FindUTXO(address string) []TxOutput {
+func (chain *BlockChain) FindUTXO(pubKeyHash []byte) []TxOutput {
   var UTXOs []TxOutput
-  unspentTransactions := chain.FindUnspentTransactions(address)
+  unspentTransactions := chain.FindUnspentTransactions(pubKeyHash)
 
   for _, tx := range unspentTransactions {
     for _, out := range tx.Outputs {
-      if out.CanBeUnlocked(address) {
+      if out.IsLockedWithKey(pubKeyHash) {
         UTXOs = append(UTXOs, out)
       }
     }
@@ -239,17 +240,17 @@ func (chain *BlockChain) FindUTXO(address string) []TxOutput {
   return UTXOs
 }
 
-func (chain *BlockChain) FindSpendableOutputs(address string, sendAmount int) (int, map[string][]int) {
+func (chain *BlockChain) FindSpendableOutputs(pubKeyHash []byte, sendAmount int) (int, map[string][]int) {
   unspentOuts := make(map[string][]int)
-  unspentTxs := chain.FindUnspentTransactions(address)
+  unspentTXs := chain.FindUnspentTransactions(pubKeyHash)
   accumulated := 0
 
   Work:
-  for _, tx := range unspentTxs {
+  for _, tx := range unspentTXs {
     txID := hex.EncodeToString(tx.ID)
 
     for outIdx, out := range tx.Outputs {
-      if out.CanBeUnlocked(address) && accumulated < sendAmount {
+      if out.IsLockedWithKey(pubKeyHash) && accumulated < sendAmount {
         // Sum up spendable tokens
         accumulated += out.Value
 
