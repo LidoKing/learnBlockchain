@@ -70,6 +70,18 @@ func CoinbaseTx(toAddress string, data string) *Transaction {
   return &tx
 }
 
+// Convert transaction into bytes then hash it to get ID
+func (tx *Transaction) Hash() []byte {
+  var hash [32]byte
+
+  txCopy := *tx
+  txCopy.ID = []byte{}
+
+  hash = sha256.Sum256(txCopy.Serialize())
+
+  return hash[:]
+}
+
 func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction {
   var inputs []TxInput
   var outputs []TxOutput
@@ -113,18 +125,6 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
   return &tx
 }
 
-// Convert transaction into bytes then hash it to get ID
-func (tx *Transaction) Hash() []byte {
-  var hash [32]byte
-
-  txCopy := *tx
-  txCopy.ID = []byte{}
-
-  hash = sha256.Sum256(txCopy.Serialize())
-
-  return hash[:]
-}
-
 func (tx *Transaction) TrimmedCopy() Transaction {
   var inputs []TxInput
   var outputs []TxOutput
@@ -153,17 +153,18 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTXs map[string]Tran
     }
   }
 
-  // Create copy to get sig without modifying actual tx
+  // Create copy to get sig without affecting actual tx
   txCopy := tx.TrimmedCopy()
 
   for inId, in := range txCopy.Inputs {
-    // Get transaction where the input points to
+    // Get transaction that the input points to
     prevTX := prevTXs[hex.EncodeToString(in.ID)]
     txCopy.Inputs[inId].Sig = nil
-    // Set PubKey field for signing
+    // Set PubKey field for hashing
+    // Actual tx is hashed with pubKey instead of pubKeyHash and with no signature
     txCopy.Inputs[inId].PubKey = prevTX.Outputs[in.Out].PubKeyHash
     txCopy.ID = txCopy.Hash()
-    // Clear PubKey field for transaction verififcation afterwards
+    // Clear PubKey field to prevent unecessary errors
     txCopy.Inputs[inId].PubKey = nil
 
     r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopy.ID)

@@ -153,6 +153,7 @@ func (chain *BlockChain) Iterator() *BlockChainIterator {
   return iter
 }
 
+// Iterate chain from newest block to oldest
 func (iter *BlockChainIterator) Next() *Block {
   var block *Block
 
@@ -213,7 +214,7 @@ func (chain *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transactio
           }
         }
 
-        // Loop doesn't end as indeices do not match
+        // Loop doesn't end as indices do not match
         // Check if unspent outputs can be unlocked provided that they are unspent
         if out.IsLockedWithKey(pubKeyHash) {
           unspentTXs = append(unspentTXs, *tx)
