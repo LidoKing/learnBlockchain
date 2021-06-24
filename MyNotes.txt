@@ -1,0 +1,24 @@
+WALLETS:
+- Wallet stores pub and priv keys but not account balance
+- Pub key is derived from priv key using ECDSA (X, Y coordinates)
+- Address
+  1. Hashing (sha256 + ripemd160)
+  2. Concatenate checksum, pubKeyHash and version to get full hash
+  3. Encode full hash (base58)
+- Balance of an account is just the total sum of unspent outputs locked by the address
+
+TRANSACTIONS:
+- A tx contains inputs and outputs
+- Sum of outputs must equal that of inputs
+- Inputs must point to outputs from previous txs
+- Creation process
+  1. Get unspent outputs (i.e. balance) of sender
+  2. Create inputs, leaving only 'signature' field empty
+  3. Create outputs and lock them with receiver addresses (extra amounts will be sent back to sender so that output sum always equals to input sum)
+    a) Lock = convert receiver address to pubKeyHash
+  4. Hash tx to get ID of tx
+  5. Sign tx and fill in 'signature' field of inputs respectively
+    a) Create a copy of tx
+    b) Replace PubKey field of inputs to actual PubKeyHash of corresponding outputs
+    c) Hash the copy to get ID for signing
+    d) Concatenate first and second part of signature to complete it
