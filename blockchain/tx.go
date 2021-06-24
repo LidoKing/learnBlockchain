@@ -13,6 +13,10 @@ type TxOutput struct {
   PubKeyHash []byte
 }
 
+type TxOutputs struct {
+  Outputs []TxOutput
+}
+
 // Reference to previous TxOutput
 // Transactions that have outputs, but no inputs pointing to them are spendable (UTXOs)
 type TxInput struct {
@@ -49,4 +53,20 @@ func NewTXOutput(value int, address string) *TxOutput {
   txo.Lock([]byte(address))
 
   return txo
+}
+
+func (outs TxOutputs) Serialize() []byte {
+  var buffer bytes.Buffer
+  enc := gob.NewEncoder(&buffer)
+  err := enc.Encode(outs)
+  Handle(err)
+  return buffer.Bytes()
+}
+
+func DeserializeOutputs(data []byte) TxOutputs {
+  var outputs TxOutputs
+  dec := gob.NewDecoder(bytes.NewReader(Data))
+  err := dec.Decode(&outputs)
+  Handle(err)
+  return outputs
 }
