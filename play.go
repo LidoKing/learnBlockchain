@@ -275,8 +275,31 @@ func Checksum(ripeMdHash []byte) {
   fmt.Printf("%x\n", secondHash[:checksumLength])
 }
 
+/*-------------------------------utxo-------------------------------*/
+
+type TxOutput struct {
+  Value int
+  PubKeyHash []byte
+}
+
+type TxOutputs struct {
+  Outputs []TxOutput
+}
+
+const txID = "randomID"
+
+func emptyMap() {
+  UTXO := make(map[string][]int)
+
+  outs := UTXO[txID]
+  fmt.Println(outs)
+  outs = append(outs, 20)
+  UTXO[txID] = outs
+  fmt.Println(UTXO[txID])
+}
+
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  WhatIsGob()
+  emptyMap()
 }
