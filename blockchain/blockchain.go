@@ -231,6 +231,7 @@ func (chain *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transactio
 
 // From transactions that contains unspent outputs to unspent ouputs
 func (chain *BlockChain) FindUTXO() map[string]TxOutputs {
+  // Value (i.e. TxOutputs struct) contains all UTXOs in the corresponding transaction
   UTXO := make(map[string]TxOutputs)
   spentTXOs := make(map[string][]int)
 
