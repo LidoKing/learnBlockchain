@@ -119,7 +119,7 @@ func NewTransaction(from, to string, amount int, UTXO *UTXOSet) *Transaction {
   }
 
   tx := Transaction{nil, inputs, outputs}
-  tx.Hash()
+  tx.ID = tx.Hash()
   UTXO.Blockchain.SignTransaction(&tx, w.PrivateKey)
 
   return &tx
