@@ -82,7 +82,7 @@ func (tx *Transaction) Hash() []byte {
   return hash[:]
 }
 
-func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction {
+func NewTransaction(from, to string, amount int, UTXO *UTXOSet) *Transaction {
   var inputs []TxInput
   var outputs []TxOutput
 
@@ -92,7 +92,7 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
   pubKeyHash := wallet.PublicKeyHash(w.PublicKey)
 
   // vallidOutputs is a map!!! (with stringified transaction IDs as keys)
-  spendable, validOutputs := chain.FindSpendableOutputs(pubKeyHash, amount)
+  spendable, validOutputs := UTXO.FindSpendableOutputs(pubKeyHash, amount)
 
   if spendable < amount {
     log.Panic("Error: Not enough funds!")
@@ -120,7 +120,7 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
 
   tx := Transaction{nil, inputs, outputs}
   tx.Hash()
-  chain.SignTransaction(&tx, w.PrivateKey)
+  UTXO.Blockchain.SignTransaction(&tx, w.PrivateKey)
 
   return &tx
 }
