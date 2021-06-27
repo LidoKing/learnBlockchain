@@ -15,8 +15,11 @@ type UTXOSet struct {
   Blockchain *BlockChain
 }
 
-// Find all UTXOs owned by specific address (pubKeyHash)
 // Replaced iterating from scratch with just checking if UTXOs can be unlocked
+
+
+// Find all UTXOs owned by specific address (pubKeyHash)
+// Used for checking balance of an address only
 func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TxOutput {
   var UTXOs []TxOutput
   db := u.Blockchain.Database
@@ -44,6 +47,7 @@ func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TxOutput {
   return UTXOs
 }
 
+// Used for transaction
 func (u UTXOSet) FindSpendableOutputs(pubKeyHash []byte, sendAmount int) (int, map[string][]int) {
   unspentOuts := make(map[string][]int)
   accumulated := 0
