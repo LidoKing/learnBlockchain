@@ -41,7 +41,7 @@ func DBexists() bool {
 
 /*-------------------------------main-------------------------------*/
 
-func (chain *BlockChain) AddBlock(transactions []*Transaction) {
+func (chain *BlockChain) AddBlock(transactions []*Transaction) *Block {
   var lastHash []byte
 
   // Get lastHash from database
@@ -74,6 +74,8 @@ func (chain *BlockChain) AddBlock(transactions []*Transaction) {
     return err // error 3
   })
   Handle(err) // Handle error 3
+
+  return newBlock
 }
 
 // Only called for starting completely new chain
