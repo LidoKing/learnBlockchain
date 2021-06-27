@@ -3,6 +3,8 @@ package blockchain
 import (
   "bytes"
   "log"
+  "encoding/hex"
+  "github.com/dgraph-io/badger"
 )
 
 var (
@@ -22,6 +24,7 @@ type UTXOSet struct {
 // Used for checking balance of an address only
 func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TxOutput {
   var UTXOs []TxOutput
+  var outs TxOutputs
   db := u.Blockchain.Database
 
   err := db.View(func(txn *badger.Txn) error {
@@ -30,9 +33,11 @@ func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TxOutput {
 
     for it.Seek(utxoPrefix); it.ValidForPrefix(utxoPrefix); it.Next() {
       item := it.Item()
-      v, err := item.Value()
+      err := item.Value(func(val []byte) error {
+        outs = DeserializeOutputs(val)
+        return nil
+      })
       Handle(err)
-      outs := DeserializeOutputs(v)
 
       for _, out := range outs.Outputs {
         if out.IsLockedWithKey(pubKeyHash) {
@@ -49,6 +54,7 @@ func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TxOutput {
 
 // Used for transaction
 func (u UTXOSet) FindSpendableOutputs(pubKeyHash []byte, sendAmount int) (int, map[string][]int) {
+  var outs TxOutputs
   unspentOuts := make(map[string][]int)
   accumulated := 0
   db := u.Blockchain.Database
@@ -60,13 +66,15 @@ func (u UTXOSet) FindSpendableOutputs(pubKeyHash []byte, sendAmount int) (int, m
     for it.Seek(utxoPrefix); it.ValidForPrefix(utxoPrefix); it.Next() {
       item := it.Item()
       k := item.Key()
-      v, err := item.Value()
-      Handle(err)
       k = bytes.TrimPrefix(k, utxoPrefix)
+      err := item.Value(func(val []byte) error {
+        outs = DeserializeOutputs(val)
+        return nil
+      })
+      Handle(err)
       txID := hex.EncodeToString(k)
-      outs := DeserializeOutputs(v)
 
-      for outIdx, out := range outs.Ouputs {
+      for outIdx, out := range outs.Outputs {
         if out.IsLockedWithKey(pubKeyHash) && accumulated < sendAmount {
           accumulated += out.Value
           unspentOuts[txID] = append(unspentOuts[txID], outIdx)
@@ -118,10 +126,10 @@ func (u *UTXOSet) DeleteByPrefix(prefix []byte) {
   }
 
   collectSize := 100000
-  u.Blockchain.Database.View(func(txn *Bader.Txn) error {
+  u.Blockchain.Database.View(func(txn *badger.Txn) error {
     opts := badger.DefaultIteratorOptions
     // Enable key-only iteration for faster iteration
-    opts.PrefetchValues := false
+    opts.PrefetchValues = false
     it := txn.NewIterator(opts)
     defer it.Close()
 
@@ -177,27 +185,31 @@ func (u *UTXOSet) Reindex() {
       err = txn.Set(key, outs.Serialize())
       Handle(err)
     }
+    return nil
   })
+  Handle(err)
 }
 
 // Remove outsputs that are originally unspent but are now referenced and used
 // Add newest unspent outputs if there are any
 func (u *UTXOSet) Update(block *Block) {
+  var outs TxOutputs
   db := u.Blockchain.Database
 
   err := db.Update(func(txn *badger.Txn) error {
     for _, tx := range block.Transactions {
-      if tx.ISCoinbase() == false {
+      if tx.IsCoinbase() == false {
         for _, in := range tx.Inputs {
           updatedOuts := TxOutputs{}
           inID := append(utxoPrefix, in.ID...) // i.e. prefixed ID of transaction referenced by input
           item, err := txn.Get(inID)
           Handle(err)
           // v: serialized TxOutputs struct which contains UTXOs of tx referenced by the input
-          v, err := item.Value()
+          err = item.Value(func(val []byte) error {
+            outs = DeserializeOutputs(val)
+            return nil
+          })
           Handle(err)
-
-          outs := DeserializeOutputs(v)
 
           for outIdx, out := range outs.Outputs {
             // Potential conflict solved by reindexing
@@ -230,9 +242,11 @@ func (u *UTXOSet) Update(block *Block) {
       }
 
       txID := append(utxoPrefix, tx.ID...)
-      if err := txn.Set(txID, newOutputs.Outputs.Serialize()); err != nil {
+      if err := txn.Set(txID, newOutputs.Serialize()); err != nil {
         log.Panic(err)
       }
     }
+    return nil
   })
+  Handle(err)
 }

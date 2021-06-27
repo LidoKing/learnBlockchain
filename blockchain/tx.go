@@ -2,6 +2,7 @@
 
 import (
   "bytes"
+  "encoding/gob"
   "github.com/LidoKing/learnBlockchain/blockchain/wallet"
 )
 
@@ -66,7 +67,7 @@ func (outs TxOutputs) Serialize() []byte {
 
 func DeserializeOutputs(data []byte) TxOutputs {
   var outputs TxOutputs
-  dec := gob.NewDecoder(bytes.NewReader(Data))
+  dec := gob.NewDecoder(bytes.NewReader(data))
   err := dec.Decode(&outputs)
   Handle(err)
   return outputs

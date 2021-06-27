@@ -215,7 +215,7 @@ func (chain *BlockChain) FindUTXO() map[string]TxOutputs {
         // Get/Initialize map
         outs := UTXO[txID]
         // Modify map
-        outs.Outputs = append(outs.Output, out)
+        outs.Outputs = append(outs.Outputs, out)
         // Set map
         UTXO[txID] = outs
       }
