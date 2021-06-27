@@ -44,6 +44,7 @@ func (out *TxOutput) Lock(address []byte) {
   out.PubKeyHash = pubKeyHash
 }
 
+// Check if unspent outputs belong to specific address
 func (out *TxOutput) IsLockedWithKey(pubKeyHash []byte) bool {
   return bytes.Compare(out.PubKeyHash, pubKeyHash) == 0
 }
