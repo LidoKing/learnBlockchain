@@ -167,6 +167,7 @@ func (cli *CommandLine) Run() {
   printChainCmd := flag.NewFlagSet("print", flag.ExitOnError)
   createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
   listAddressesCmd := flag.NewFlagSet("listaddresses", flag.ExitOnError)
+  reindexUTXOCmd := flag.NewFlagSet("reindexutxo", flag.ExitOnError)
 
   // String() params: name, value, usage
   getBalanceAddress := getBalanceCmd.String("address", "", "The address to get balance for")
@@ -199,6 +200,10 @@ func (cli *CommandLine) Run() {
 
   case "listaddresses":
     err := listAddressesCmd.Parse(os.Args[2:])
+    blockchain.Handle(err)
+
+  case "reindexutxo":
+    err := reindexUTXOCmd.Parse(os.Args[2:])
     blockchain.Handle(err)
 
   default:
@@ -241,5 +246,9 @@ func (cli *CommandLine) Run() {
 
   if listAddressesCmd.Parsed() {
     cli.listAddresses()
+  }
+
+  if reindexUTXOCmd.Parsed() {
+    cli.reindexUTXO()
   }
 }
