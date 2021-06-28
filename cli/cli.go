@@ -100,10 +100,12 @@ func (cli *CommandLine) send(from, to string, amount int) {
 
   block := chain.AddBlock([]*blockchain.Transaction{tx})
   UTXOSet.Update(block)
+  fmt.Println()
   fmt.Println("Transaction complete. Details:")
-  fmt.Printf("  From: %s", from)
-  fmt.Printf("  To: %s", to)
-  fmt.Printf("  Amount: %d", amount)
+  fmt.Printf("  From: %s\n", from)
+  fmt.Printf("  To: %s\n", to)
+  fmt.Printf("  Amount: %d\n", amount)
+  fmt.Println()
 }
 
 func (cli *CommandLine) printChain() {
@@ -123,11 +125,11 @@ func (cli *CommandLine) printChain() {
     // PoW validation
     pow := blockchain.NewProofOfWork(block)
     fmt.Printf("Pow: %s\n", strconv.FormatBool(pow.Validate()))
-    fmt.Println()
 
     // Transactoins
     for _, tx := range block.Transactions {
       fmt.Println(tx)
+      fmt.Println()
     }
 
     // Length of slice of byte is 0 = no data
@@ -152,7 +154,9 @@ func (cli *CommandLine) createWallet() {
   address := wallets.AddWallet()
   wallets.SaveFile()
 
+  fmt.Println()
   fmt.Printf("New address created: %s\n", address)
+  fmt.Println()
 }
 
 func (cli *CommandLine) reindexUTXO() {
@@ -162,7 +166,10 @@ func (cli *CommandLine) reindexUTXO() {
   UTXOSet.Reindex()
 
   count := UTXOSet.CountTransactions()
+
+  fmt.Println()
   fmt.Printf("Done! There are %d transactions in the UTXO set. \n", count)
+  fmt.Println()
 }
 
 func (cli *CommandLine) Run() {
