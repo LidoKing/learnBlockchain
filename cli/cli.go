@@ -18,9 +18,9 @@ type CommandLine struct {
 func (cli *CommandLine) printUsage() {
   fmt.Println()
   fmt.Println("Usage:")
-  fmt.Println(" balance -address ADDRESSS -> Get balance of ADDRESS")
-  fmt.Println(" createchain -address ADDRESS -> Creates a blockchain and rewards the mining fee")
-  fmt.Println(" send -from FROM -to TO -amount AMOUNT -> Send coins from one address to another")
+  fmt.Println(" balance -a ADDRESSS -> Get balance of ADDRESS")
+  fmt.Println(" createchain -a ADDRESS -> Creates a blockchain and rewards the mining fee")
+  fmt.Println(" send -f FROM -t TO -amount AMOUNT -> Send coins from one address to another")
   fmt.Println(" print -> Prints the blocks in the chain")
   fmt.Println(" createwallet -> Creates a new wallet")
   fmt.Println(" listaddresses -> Lists all existing addresses")
@@ -100,7 +100,10 @@ func (cli *CommandLine) send(from, to string, amount int) {
 
   block := chain.AddBlock([]*blockchain.Transaction{tx})
   UTXOSet.Update(block)
-  fmt.Printf("Transaction complete. From: %s, To: %s, Amount: %d", from, to, amount)
+  fmt.Println("Transaction complete. Details:")
+  fmt.Printf("  From: %s", from)
+  fmt.Printf("  To: %s", to)
+  fmt.Printf("  Amount: %d", amount)
 }
 
 func (cli *CommandLine) printChain() {
@@ -174,10 +177,10 @@ func (cli *CommandLine) Run() {
   reindexUTXOCmd := flag.NewFlagSet("reindexutxo", flag.ExitOnError)
 
   // String() params: name, value, usage
-  getBalanceAddress := getBalanceCmd.String("address", "", "The address to get balance for")
-  createBlockchainAddress := createBlockchainCmd.String("address", "", "The address to send genesis block reward to")
-  sendFrom := sendCmd.String("from", "", "Sender wallet address")
-  sendTo := sendCmd.String("to", "", "Receiver wallet address")
+  getBalanceAddress := getBalanceCmd.String("a", "", "The address to get balance for")
+  createBlockchainAddress := createBlockchainCmd.String("a", "", "The address to send genesis block reward to")
+  sendFrom := sendCmd.String("f", "", "Sender wallet address")
+  sendTo := sendCmd.String("t", "", "Receiver wallet address")
   sendAmount := sendCmd.Int("amount", 0, "Amount to send")
 
   // Parse arguments for checking afterwards
