@@ -80,7 +80,9 @@ func (cli *CommandLine) getBalance(address string) {
     balance += out.Value
   }
 
+  fmt.Println()
   fmt.Printf("Balance of %s: %d\n", address, balance)
+  fmt.Println()
 }
 
 func (cli *CommandLine) send(from, to string, amount int) {
@@ -144,9 +146,11 @@ func (cli *CommandLine) listAddresses() {
   wallets, _ := wallet.CreateWallets()
   addresses := wallets.GetAllAddresses()
 
+  fmt.Println()
   for index, address := range addresses {
     fmt.Printf("%d: %s\n", index, address)
   }
+  fmt.Println()
 }
 
 func (cli *CommandLine) createWallet() {
