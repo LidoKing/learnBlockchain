@@ -99,9 +99,12 @@ func (cli *CommandLine) send(from, to string, amount int) {
   defer chain.Database.Close()
 
   tx := blockchain.NewTransaction(from, to, amount, &UTXOSet)
+  // Tx for rewarding miner, which is the sender
+  coinbaseTx := blockchain.CoinbaseTx(from, "")
 
-  block := chain.AddBlock([]*blockchain.Transaction{tx})
+  block := chain.AddBlock([]*blockchain.Transaction{coinbaseTx, tx})
   UTXOSet.Update(block)
+
   fmt.Println()
   fmt.Println("Transaction complete. Details:")
   fmt.Printf("  From: %s\n", from)
