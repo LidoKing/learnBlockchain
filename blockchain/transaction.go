@@ -68,7 +68,7 @@ func CoinbaseTx(toAddress string, data string) *Transaction {
   // First trransaction has no previous output
   // OutputIndex is -1
   txIn := TxInput{[]byte{}, -1, nil, []byte(data)}
-  txOut := NewTXOutput(100, toAddress)
+  txOut := NewTXOutput(20, toAddress)
 
   tx := Transaction{nil, []TxInput{txIn}, []TxOutput{*txOut}}
   tx.ID = tx.Hash()
