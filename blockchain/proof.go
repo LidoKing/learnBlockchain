@@ -59,13 +59,13 @@ func (pow *ProofOfWork) Run() (int, []byte) {
   var hash [32]byte
 
   nonce := 0
-    // This is essentially an infinite loop due to how large
-    // MaxInt64 is.
+
+  fmt.Println()
+  // This is essentially an infinite loop due to how large MaxInt64 is.
   for nonce < math.MaxInt64 {
     data := pow.InitData(nonce)
     hash = sha256.Sum256(data)
 
-    fmt.Println()
     fmt.Printf("\r%x", hash)
     intHash.SetBytes(hash[:])
 
