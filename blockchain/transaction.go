@@ -38,38 +38,6 @@ func (tx *Transaction) Serialize() []byte {
   return encoded.Bytes()
 }
 
-/*--------------------------main---------------------------*/
-
-// Create hash as transaction ID
-func (tx *Transaction) SetID() {
-  var encoded bytes.Buffer
-  var hash [32]byte
-
-  encode := gob.NewEncoder(&encoded)
-  err := encode.Encode(tx)
-  Handle(err)
-
-  hash = sha256.Sum256(encoded.Bytes())
-  tx.ID = hash[:]
-}
-
-func CoinbaseTx(toAddress string, data string) *Transaction {
-  // Set and print out default data
-  if data == "" {
-    data = fmt.Sprintf("Coins to %s", toAddress)
-  }
-
-  // First trransaction has no previous output
-  // OutputIndex is -1
-  txIn := TxInput{[]byte{}, -1, nil, []byte(data)}
-  txOut := NewTXOutput(100, toAddress)
-
-  tx := Transaction{nil, []TxInput{txIn}, []TxOutput{*txOut}}
-  tx.SetID()
-
-  return &tx
-}
-
 // Convert transaction into bytes then hash it to get ID
 func (tx *Transaction) Hash() []byte {
   var hash [32]byte
@@ -80,6 +48,32 @@ func (tx *Transaction) Hash() []byte {
   hash = sha256.Sum256(txCopy.Serialize())
 
   return hash[:]
+}
+
+/*--------------------------main---------------------------*/
+
+func CoinbaseTx(toAddress string, data string) *Transaction {
+  // Set and print out default data
+  if data == "" {
+    // Create slice of byte which has a length of 24
+    randData := make([]byte, 24)
+    // Gen 24 random bytes
+    _, err := rand.Read(randData)
+    if err != nil {
+      log.Panic(err)
+    }
+    data = fmt.Sprintf("%x", randData)
+  }
+
+  // First trransaction has no previous output
+  // OutputIndex is -1
+  txIn := TxInput{[]byte{}, -1, nil, []byte(data)}
+  txOut := NewTXOutput(100, toAddress)
+
+  tx := Transaction{nil, []TxInput{txIn}, []TxOutput{*txOut}}
+  tx.ID = tx.Hash()
+
+  return &tx
 }
 
 func NewTransaction(from, to string, amount int, UTXO *UTXOSet) *Transaction {
