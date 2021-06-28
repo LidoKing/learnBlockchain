@@ -190,6 +190,7 @@ func (u *UTXOSet) Reindex() {
   Handle(err)
 }
 
+// Update database: 
 // Remove outsputs that are originally unspent but are now referenced and used
 // Add newest unspent outputs if there are any
 func (u *UTXOSet) Update(block *Block) {
