@@ -61,3 +61,26 @@ type Version struct {
   BestHeight int
   AddrFrom string
 }
+
+func CmdToBytes(cmd string) []byte {
+  var bytes [commandLength]byte
+
+  for i, c := range cmd {
+    // Convert each charater into byte respectively
+    bytes[i] = bytes(c)
+  }
+
+  return bytes[:]
+}
+
+func BytesToCmd(bytes []byte) string {
+  var cmd []byte
+
+  for _, b := range bytes {
+    if b != 0x0 {
+      cmd = append(cmd, b)
+    }
+  }
+
+  return fmt.Sprintf("%s", cmd)
+}
