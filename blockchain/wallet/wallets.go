@@ -50,6 +50,7 @@ func (ws *Wallets) LoadFile() error {
   return nil
 }
 
+// Get wallets from database
 func CreateWallets() (*Wallets, error) {
   wallets := Wallets{}
   wallets.Wallets = make(map[string]*Wallet)
