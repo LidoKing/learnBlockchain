@@ -64,19 +64,17 @@ func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
   return block
 }
 
-func (b *Block) HashTransactions() []byte {
+func (b *Block) SerializeTransactions() []byte {
   // Array of transaction IDs
-  var txHashes [][]byte
-
-  // Final aggregated hash
-  var txHash [32]byte
+  var serializedTXs [][]byte
 
   for _, tx := range b.Transactions {
-    txHashes = append(txHashes, tx.ID)
+    serializedTXs = append(serializedTXs, tx.Serialize())
   }
-  txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
 
-  return txHash[:]
+  tree := NewMerkleTree(serializedTXs)
+
+  return tree.RootNode.Data
 }
 
 func Genesis(coinbase *Transaction) *Block {
