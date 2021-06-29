@@ -4,7 +4,6 @@ import (
   "log"
   "bytes"
   "encoding/gob"
-  "crypto/sha256"
 )
 
 type Block struct {
