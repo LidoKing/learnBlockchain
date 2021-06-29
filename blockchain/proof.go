@@ -11,7 +11,7 @@ import (
 )
 
 // Mining difficulty remains constant for simplicity
-const Difficulty = 19
+const Difficulty = 18
 
 type ProofOfWork struct {
   Block *Block
