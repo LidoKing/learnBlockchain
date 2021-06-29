@@ -151,7 +151,8 @@ func (cli *CommandLine) listAddresses() {
 
   fmt.Println()
   for index, address := range addresses {
-    fmt.Printf("%d: %s\n", index, address)
+    _index := index + 1
+    fmt.Printf("%d: %s\n", _index, address)
   }
   fmt.Println()
 }
