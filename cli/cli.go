@@ -22,7 +22,7 @@ func (cli *CommandLine) printUsage() {
   fmt.Println(" createchain -a ADDRESS -> Creates a blockchain and rewards the mining fee")
   fmt.Println(" send -f FROM -t TO -amount AMOUNT -> Send coins from one address to another")
   fmt.Println(" print -> Prints the blocks in the chain")
-  fmt.Println(" createwallet -> Creates a new wallet")
+  fmt.Println(" createwallet -n NUMBER OF WALLETS -> Creates new wallets")
   fmt.Println(" listaddresses -> Lists all existing addresses")
   fmt.Println(" reindexutxo -> Rebuilds the UTXO set")
 }
@@ -156,14 +156,17 @@ func (cli *CommandLine) listAddresses() {
   fmt.Println()
 }
 
-func (cli *CommandLine) createWallet() {
+func (cli *CommandLine) createWallet(num int) {
   wallets, _ := wallet.CreateWallets()
-  address := wallets.AddWallet()
-  wallets.SaveFile()
 
-  fmt.Println()
-  fmt.Printf("New address created: %s\n", address)
-  fmt.Println()
+  for i := 0; i < num; i++ {
+    address := wallets.AddWallet()
+    wallets.SaveFile()
+
+    fmt.Println()
+    fmt.Printf("New address created: %s\n", address)
+    fmt.Println()
+  }
 }
 
 func (cli *CommandLine) reindexUTXO() {
@@ -196,6 +199,7 @@ func (cli *CommandLine) Run() {
   sendFrom := sendCmd.String("f", "", "Sender wallet address")
   sendTo := sendCmd.String("t", "", "Receiver wallet address")
   sendAmount := sendCmd.Int("amount", 0, "Amount to send")
+  numOfWallets := createWalletCmd.Int("n", 1, "Number of wallets to be created")
 
   // Parse arguments for checking afterwards
   switch os.Args[1] {
@@ -262,7 +266,7 @@ func (cli *CommandLine) Run() {
   }
 
   if createWalletCmd.Parsed() {
-    cli.createWallet()
+    cli.createWallet(*numOfWallets)
   }
 
   if listAddressesCmd.Parsed() {
