@@ -162,6 +162,12 @@ func SendData(addr string, data []byte) {
   }
 }
 
+// Send funcs pattern:
+// 1. Create struct
+// 2. Encode struct to bytes as payload
+// 3. Concatenate command and payload to form request
+// 4. Call SendData()
+
 func SendAddr(address string) {
   nodes := Addr{KnownNodes}
   nodes.AddrList = append(nodes.AddrList, nodeAddress)
@@ -171,10 +177,35 @@ func SendAddr(address string) {
   SendData(address, request)
 }
 
-func SendBlock(addr string, b *blockchain.Block) {
+func SendBlock(address string, b *blockchain.Block) {
   data := Block {nodeAddress, b.Serialize()}
   payload := GobEncode(data)
   request := append(CmdToBytes("block"), payload...)
 
-  SendData(addr, request)
+  SendData(address, request )
+}
+
+func SendInv(address, kind string, items [][]byte) {
+  inventory := Inv{nodeAddress, kind, items}
+  payload := GobEncode(inventory)
+  request := append(CmdToBytes("inv"), payload...)
+
+  SendData(address, request)
+}
+
+func SendTx(address string, tx *blockchain.Transaction) {
+  data := Tx{nodeAddress, tx.Serialize()}
+  payload := GobEncode(data)
+  request := append(CmdToBytes("tx"), payload...)
+
+  SendData(address, request)
+}
+
+func SendVersion(address string, chain *blockchain.BlockChain) {
+  bestHeight := chain.GetBestHeight()
+  version := Version{version, bestHeight, nodeAddress}
+  payload := GobEncode(version)
+  request := append(CmdToBytes("version"), payload...)
+
+  SendData(address, request)
 }
