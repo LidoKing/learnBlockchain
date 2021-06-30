@@ -115,6 +115,22 @@ func CloseDB(chain *blockchain.Blockchain) {
   })
 }
 
+func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
+  req, err := ioutil.ReadAll(conn)
+  defer conn.Close()
+
+  if err != nil {
+    log.Panic(err)
+  }
+  command := BytesToCmd(req[:commandLength])
+  fmt.Printf("Received %s command\n", command)
+
+  switch command {
+  default:
+    fmt.Println("Unknown command")
+  }
+}
+
 // Send data from one node to another
 func SendData(addr string, data []byte) {
   conn, err := net.Dial(protocol, addr)
@@ -155,18 +171,10 @@ func SendAddr(address string) {
   SendData(address, request)
 }
 
-func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
-  req, err := ioutil.ReadAll(conn)
-  defer conn.Close()
+func SendBlock(addr string, b *blockchain.Block) {
+  data := Block {nodeAddress, b.Serialize()}
+  payload := GobEncode(data)
+  request := append(CmdToBytes("block"), payload...)
 
-  if err != nil {
-    log.Panic(err)
-  }
-  command := BytesToCmd(req[:commandLength])
-  fmt.Printf("Received %s command\n", command)
-
-  switch command {
-  default:
-    fmt.Println("Unknown command")
-  }
+  SendData(addr, request)
 }
