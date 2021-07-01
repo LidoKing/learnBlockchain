@@ -48,7 +48,7 @@ type GetBlocks struct {
 
 type GetData struct {
   AddrFrom string
-  Tpe string
+  Type string
   ID []byte
 }
 
@@ -178,24 +178,21 @@ func SendAddr(address string) {
 }
 
 func SendBlock(address string, b *blockchain.Block) {
-  data := Block {nodeAddress, b.Serialize()}
-  payload := GobEncode(data)
+  payload := GobEncode(Block{nodeAddress, b.Serialize()})
   request := append(CmdToBytes("block"), payload...)
 
   SendData(address, request )
 }
 
 func SendInv(address, kind string, items [][]byte) {
-  inventory := Inv{nodeAddress, kind, items}
-  payload := GobEncode(inventory)
+  payload := GobEncode(Inv{nodeAddress, kind, items})
   request := append(CmdToBytes("inv"), payload...)
 
   SendData(address, request)
 }
 
 func SendTx(address string, tx *blockchain.Transaction) {
-  data := Tx{nodeAddress, tx.Serialize()}
-  payload := GobEncode(data)
+  payload := GobEncode(Tx{nodeAddress, tx.Serialize()})
   request := append(CmdToBytes("tx"), payload...)
 
   SendData(address, request)
@@ -203,9 +200,22 @@ func SendTx(address string, tx *blockchain.Transaction) {
 
 func SendVersion(address string, chain *blockchain.BlockChain) {
   bestHeight := chain.GetBestHeight()
-  version := Version{version, bestHeight, nodeAddress}
-  payload := GobEncode(version)
+  payload := GobEncode(Version{version, bestHeight, nodeAddress})
   request := append(CmdToBytes("version"), payload...)
+
+  SendData(address, request)
+}
+
+func SendGetBlocks(address string) {
+  payload := GobEncode(GetBlocks{nodeAddress})
+  request := append(CmdToBytes("getblocks"), payload...)
+
+  SendData(address, request)
+}
+
+func SendGetData(address, type string, id []byte) {
+  payload := GobEncode(GetData{nodeAddress, type, id})
+  request := append(CmdToBytes("getdata"), payload...)
 
   SendData(address, request)
 }
