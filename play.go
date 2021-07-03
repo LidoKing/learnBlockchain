@@ -68,30 +68,19 @@ type Q struct {
 	Name string
 }
 
+var data = "hi"
+
 func WhatIsGob() {
-	var network bytes.Buffer        // Stand-in for a network connection
-	enc := gob.NewEncoder(&network) // Will write to network.
-	dec := gob.NewDecoder(&network) // Will read from network.
+	var buff bytes.Buffer // Stand-in for a network connection
+  fmt.Println(buff)
 
-	// Encode (send) some values.
-	err := enc.Encode(P{1, 4, 5, "Pythagoras"})
-	if err != nil {
-		log.Fatal("encode error:", err)
-	}
+	enc := gob.NewEncoder(&buff) // Will write to buff
+  if err := enc.Encode(data); err != nil {
+    log.Fatal(err)
+  }
 
-  fmt.Printf("%q\n", network)
-
-	// Decode (receive) and print the values.
-	var q Q
-	err = dec.Decode(&q)
-	if err != nil {
-		log.Fatal("decode error 1:", err)
-	}
-	fmt.Printf("%q: {%d, %d}\n", q.Name, *q.X, *q.Y)
-
-	// Output:
-	// "Pythagoras": {3, 4}
-	// "Treehouse": {1782, 1841}
+  fmt.Println(data)
+  fmt.Println(buff.Bytes())
 }
 
 /*-------------------------------block.go-------------------------------*/
@@ -301,5 +290,5 @@ func emptyMap() {
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  emptyMap()
+  WhatIsGob()
 }
