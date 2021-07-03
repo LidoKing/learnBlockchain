@@ -68,13 +68,16 @@ type Q struct {
 	Name string
 }
 
-var data = "hi"
+
 
 func WhatIsGob() {
 	var buff bytes.Buffer // Stand-in for a network connection
+  data := "hi"
+
+  buff.Write([]byte{20, 5, 10})
   fmt.Println(buff)
 
-	enc := gob.NewEncoder(&buff) // Will write to buff
+  enc := gob.NewEncoder(&buff) // Will write to buff
   if err := enc.Encode(data); err != nil {
     log.Fatal(err)
   }
