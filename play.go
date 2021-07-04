@@ -72,17 +72,17 @@ type Q struct {
 
 func WhatIsGob() {
 	var buff bytes.Buffer // Stand-in for a network connection
-  data := "hi"
+  var data string
 
-  buff.Write([]byte{20, 5, 10})
+  buff.Write([]byte{5, 6})
   fmt.Println(buff)
 
   enc := gob.NewEncoder(&buff) // Will write to buff
-  if err := enc.Encode(data); err != nil {
+  if err := enc.Encode(&data); err != nil {
     log.Fatal(err)
   }
 
-  fmt.Println(data)
+  fmt.Println(&data)
   fmt.Println(buff.Bytes())
 }
 
