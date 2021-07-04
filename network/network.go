@@ -26,6 +26,7 @@ var (
   nodeAddress string
   minerAddress string
   KnownNodes = []string{"localhost:3000"}
+  // Blocks being sent from one client to the next
   blocksInTransit = [][]byte{}
   // Store txs until there are enough for mining
   memPool = make(map[string]blockchain.Transaction)
@@ -213,9 +214,60 @@ func SendGetBlocks(address string) {
   SendData(address, request)
 }
 
-func SendGetData(address, type string, id []byte) {
-  payload := GobEncode(GetData{nodeAddress, type, id})
+func SendGetData(address, kind string, id []byte) {
+  payload := GobEncode(GetData{nodeAddress, kind, id})
   request := append(CmdToBytes("getdata"), payload...)
 
   SendData(address, request)
+}
+
+// Make sure all blockchains are synced
+func RequestBlocks() {
+  for _, node := range KnownNodes {
+    SendGetBlocks(node)
+  }
+}
+
+func HandleAddr(request []byte) {
+  var buff bytes.Buffer
+  var payload Addr
+
+  buff.Write(request[commandLength:]) // Extract payload
+  dec := gob.NewDecoder(&buff) // Read from buff
+  if err := dec.Decode(&payload); err != nil { // Write decoded buff to payload
+    log.Panic(err)
+  }
+
+  KnownNodes = append(KnownNodes, payload.AddrList...)
+  fmt.Printf("There are %d known nodes\n", len(KnownNodes))
+  RequestBlocks()
+}
+
+func HandleBlock(request []byte, chain *blockchain.BlockChain) {
+  var buff bytes.Buffer
+  var payload Block
+
+  buff.Write(request[commandLength:])
+  dec := gob.NewDecoder(&buff)
+  if err := dec.Decode(&payload); err != nil {
+    log.Panic(err)
+  }
+
+  blockData := payload.Block
+  block := blockchain.Deserialize(blokData)
+
+  fmt.Println("Received a block!")
+  chain.AddBlock(block)
+
+  fmt.Printf("Added block %x\n", block.Hash)
+
+  if len(blocksInTransit) > 0 {
+    blockHash := blocksInTransit[0]
+    SendGetData(payload.AddrFrom, "block", blockHash)
+
+    blocksInTransit = blocksInTransit[1:]
+  } else {
+    UTXOSet := blockchain.UTXOSet{chain}
+    UTXOSet.Reindex()
+  }
 }
