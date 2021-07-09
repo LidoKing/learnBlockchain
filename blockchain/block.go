@@ -4,13 +4,16 @@ import (
   "log"
   "bytes"
   "encoding/gob"
+  "time"
 )
 
 type Block struct {
+  Timestamp     int64
   Hash          []byte
   Transactions  []*Transaction
   PrevHash      []byte
   Nonce         int
+  Height        int
 }
 
 /*---------------------------utils---------------------------*/
@@ -48,10 +51,10 @@ func Deserialize(data []byte) *Block {
 
 /*---------------------------main---------------------------*/
 
-func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
+func CreateBlock(txs []*Transaction, prevHash []byte, height int) *Block {
   // Create block with only data and hash of previous block
   // other fields (hash, nonce) empty
-  block := &Block{[]byte{}, txs, prevHash, 0}
+  block := &Block{time.Now().Unix(), []byte{}, txs, prevHash, 0, height}
   pow := NewProofOfWork(block)
 
   // Get noncce and hash of block after mined
@@ -77,5 +80,5 @@ func (b *Block) SerializeTransactions() []byte {
 }
 
 func Genesis(coinbase *Transaction) *Block {
-  return CreateBlock([]*Transaction{coinbase}, []byte{})
+  return CreateBlock([]*Transaction{coinbase}, []byte{}, 0)
 }
