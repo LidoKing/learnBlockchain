@@ -38,6 +38,15 @@ func (tx *Transaction) Serialize() []byte {
   return encoded.Bytes()
 }
 
+func Deserialize(data []byte) Transaction {
+  var tx Transaction
+
+  dec := gob.NewDecoder(bytes.NewReader(data))
+  err := dec.Decode(&tx)
+  Handle(err)
+  return transaction
+}
+
 // Convert transaction into bytes then hash it to get ID
 func (tx *Transaction) Hash() []byte {
   var hash [32]byte
