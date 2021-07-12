@@ -290,8 +290,18 @@ func emptyMap() {
   fmt.Println(UTXO[txID])
 }
 
+/*--------------------------------------------------------------*/
+
+const name = "banana_%s"
+
+func sprintfConcatenation() {
+  name := fmt.Sprintf(name, "noice")
+
+  fmt.Println(name)
+}
+
 /*-------------------------------main-------------------------------*/
 
 func main() {
-  WhatIsGob()
+  sprintfConcatenation()
 }
