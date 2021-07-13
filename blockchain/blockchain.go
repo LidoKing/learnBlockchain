@@ -237,7 +237,7 @@ func (chain *BlockChain) MineBlock(transactions []*Transaction) *Block {
 
 // Only called for starting completely new chain
 func InitBlockChain(address, nodeID string) *BlockChain { // miner's wallet pubKeyHash
-  path := fmt.Sprintf(nodeID, dbPath)
+  path := fmt.Sprintf(dbPath, nodeID)
   if DBexists(path) {
     fmt.Println("Blockchain already exists, call 'ContinueBlockChain' instead.")
     runtime.Goexit()
