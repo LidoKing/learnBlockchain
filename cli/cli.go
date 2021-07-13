@@ -20,21 +20,21 @@ func (cli *CommandLine) printUsage() {
   fmt.Println()
   fmt.Println("Usage:")
   // Get balance of ADDRESS
-  fmt.Println(" balance -a ADDRESSS")
+  fmt.Println(" 1. balance -a ADDRESSS")
   // Creates a blockchain and rewards the mining fee
-  fmt.Println(" createchain -a ADDRESS")
+  fmt.Println(" 2. createchain -a ADDRESS")
   // Send coins from one address to another, -mine allows sender to mine own block
-  fmt.Println(" send -f FROM -t TO -amount AMOUNT -mine")
+  fmt.Println(" 3. send -f FROM -t TO -amount AMOUNT -mine")
   // Prints the blocks in the chain
-  fmt.Println(" print")
+  fmt.Println(" 4. print")
   // Creates new wallets
-  fmt.Println(" createwallet -n NUMBER OF WALLETS")
+  fmt.Println(" 5. createwallet -n NUMBER OF WALLETS")
   // Lists all existing addresses
-  fmt.Println(" listaddresses")
+  fmt.Println(" 6. listaddresses")
   // Rebuilds the UTXO set
-  fmt.Println(" reindexutxo")
+  fmt.Println(" 7. reindexutxo")
   // Start node with ID specified in NODE_ID env. var., -miner indicates that the node is a miner node
-  fmt.Println(" startnode -miner ADDRESS")
+  fmt.Println(" 8. startnode -miner ADDRESS")
 }
 
 // Ensure valid input is given
@@ -185,7 +185,7 @@ func (cli *CommandLine) createWallet(nodeID string, num int) {
 
   for i := 0; i < num; i++ {
     address := wallets.AddWallet()
-    wallets.SaveFile()
+    wallets.SaveFile(nodeID)
 
     fmt.Println()
     fmt.Printf("New address created: %s\n", address)
@@ -334,6 +334,6 @@ func (cli *CommandLine) Run() {
       fmt.Println("NODE_ID env is not set")
       runtime.Goexit()
     }
-    cli.StartNode(nodeID, *startNodeMiner)
+    cli.startNode(nodeID, *startNodeMiner)
   }
 }

@@ -76,7 +76,7 @@ func CmdToBytes(cmd string) []byte {
 
   for i, c := range cmd {
     // Convert each charater into byte respectively
-    bytes[i] = bytes(c)
+    bytes[i] = byte(c)
   }
 
   return bytes[:]
@@ -106,7 +106,7 @@ func GobEncode(data interface{}) []byte {
   return buff.Bytes()
 }
 
-func CloseDB(chain *blockchain.Blockchain) {
+func CloseDB(chain *blockchain.BlockChain) {
   d := death.NewDeath(syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 
   d.WaitForDeathWithFunc(func() {
@@ -268,7 +268,7 @@ func HandleBlock(request []byte, chain *blockchain.BlockChain) {
   }
 
   blockData := payload.Block
-  block := blockchain.Deserialize(blokData)
+  block := blockchain.Deserialize(blockData)
 
   fmt.Println("Received a block!")
   chain.AddBlock(block)
@@ -332,10 +332,9 @@ func NodeIsKnown(addr string) bool {
   for _, node := range KnownNodes {
     if node == addr {
       return true
-    } else {
-      return false
     }
   }
+  return false
 }
 
 func HandleVersion(request []byte, chain *blockchain.BlockChain) {
@@ -359,7 +358,7 @@ func HandleVersion(request []byte, chain *blockchain.BlockChain) {
     SendGetBlocks(payload.AddrFrom)
   }
 
-  if !NodeIsKnown() {
+  if !NodeIsKnown(payload.AddrFrom) {
     KnownNodes = append(KnownNodes, payload.AddrFrom)
   }
 }
@@ -374,7 +373,7 @@ func HandleTx(request []byte, chain *blockchain.BlockChain) {
     log.Panic(err)
   }
 
-  tx := blockchain.Deserialize(payload.Transaction)
+  tx := blockchain.DeserializeTx(payload.Transaction)
   memPool[hex.EncodeToString(tx.ID)] = tx
 
   if nodeAddress == KnownNodes[0] { // central node
@@ -403,8 +402,8 @@ func MineTx(chain *blockchain.BlockChain) {
 
   for _, tx := range memPool {
     fmt.Printf("tx: %s\n", tx.ID)
-    if chain.VerifyTransaction(tx) {
-      txs = append(txs, tx)
+    if chain.VerifyTransaction(&tx) {
+      txs = append(txs, &tx)
     }
   }
 
@@ -486,7 +485,7 @@ func StartServer(nodeID, minerAddress string) {
   defer ln.Close()
 
   chain := blockchain.ContinueBlockChain(nodeID)
-  defer chain.Databae.Close()
+  defer chain.Database.Close()
   go CloseDB(chain)
 
   if nodeAddress != KnownNodes[0] {
