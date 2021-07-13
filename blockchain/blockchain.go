@@ -16,6 +16,7 @@ import (
 
 const (
   dbPath = "./tmp/blocks_%s"
+  genesisData = "First Transaction from Genesis"
 )
 
 type BlockChain struct{
@@ -285,9 +286,7 @@ func ContinueBlockChain(nodeID string) *BlockChain { // miner's wallet pubKeyHas
   var lastHash []byte
 
   // Open database
-  opts := badger.DefaultOptions
-  opts.Dir = dbPath
-  opts.ValueDir = dbPath
+  opts := badger.DefaultOptions(path)
 
   db, err := openDB(path, opts) // error 1
   Handle(err) // Handle error 1

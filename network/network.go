@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"runtime"
 	"os"
-  "gopkg.in/vrecan/death.v3"
+  "github.com/vrecan/death/v3"
   "github.com/LidoKing/learnBlockchain/blockchain"
 )
 

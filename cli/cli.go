@@ -9,7 +9,7 @@ import (
   "log"
   "github.com/LidoKing/learnBlockchain/blockchain"
   "github.com/LidoKing/learnBlockchain/blockchain/wallet"
-  "github.com/LidoKing/learnBlockchain/network/network"
+  "github.com/LidoKing/learnBlockchain/network"
 )
 
 type CommandLine struct {

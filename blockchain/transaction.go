@@ -38,13 +38,14 @@ func (tx *Transaction) Serialize() []byte {
   return encoded.Bytes()
 }
 
-func Deserialize(data []byte) Transaction {
+func DeserializeTx(data []byte) Transaction {
   var tx Transaction
 
   dec := gob.NewDecoder(bytes.NewReader(data))
   err := dec.Decode(&tx)
   Handle(err)
-  return transaction
+
+  return tx
 }
 
 // Convert transaction into bytes then hash it to get ID
@@ -85,13 +86,10 @@ func CoinbaseTx(toAddress string, data string) *Transaction {
   return &tx
 }
 
-func NewTransaction(from, to string, amount int, UTXO *UTXOSet) *Transaction {
+func NewTransaction(w *wallet.Wallet, to string, amount int, UTXO *UTXOSet) *Transaction {
   var inputs []TxInput
   var outputs []TxOutput
 
-  wallets, err := wallet.CreateWallets()
-  Handle(err)
-  w:= wallets.GetWallet(from)
   pubKeyHash := wallet.PublicKeyHash(w.PublicKey)
 
   // vallidOutputs is a map!!! (with stringified transaction IDs as keys)
