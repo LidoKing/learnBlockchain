@@ -113,9 +113,9 @@ func (cli *CommandLine) send(from, to string, amount int, nodeID string, mineNow
   if err != nil {
     log.Panic(err)
   }
-  fromAddress := wallets.GetWallet(from)
+  fromWallet := wallets.GetWallet(from)
 
-  tx := blockchain.NewTransaction(&fromAddress, to, amount, &UTXOSet)
+  tx := blockchain.NewTransaction(&fromWallet, to, amount, &UTXOSet)
 
   if mineNow {
     // Tx for rewarding miner

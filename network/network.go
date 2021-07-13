@@ -378,7 +378,7 @@ func HandleTx(request []byte, chain *blockchain.BlockChain) {
 
   if nodeAddress == KnownNodes[0] { // central node
     for _, node := range KnownNodes {
-      if node != nodeAddress && node != payload.AddrFrom {
+      if node != nodeAddress && node != payload.AddrFrom { // not own node and not sender node
         SendInv(node, "tx", [][]byte{tx.ID})
       }
     }
@@ -473,9 +473,9 @@ func HandleInv(request []byte, chain *blockchain.BlockChain) {
   }
 }
 
-func StartServer(nodeID, minerAddress string) {
+func StartServer(nodeID, miner string) {
   nodeAddress = fmt.Sprintf("localhost: %s", nodeID)
-  minerAddress = minerAddress
+  minerAddress = miner
 
   ln, err := net.Listen(protocol, nodeAddress)
   if err != nil {
