@@ -9,6 +9,9 @@ import (
   "bytes"
   "errors"
   "crypto/ecdsa"
+  "path/filepath"
+  "strings"
+  "log"
 )
 
 const (
@@ -138,7 +141,7 @@ func (chain *BlockChain) GetBlockHashes() [][]byte {
 
     blocks = append(blocks, block.Hash)
 
-    if len(block.prevHash) == 0 {
+    if len(block.PrevHash) == 0 {
       break
     }
   }
@@ -242,9 +245,7 @@ func InitBlockChain(address, nodeID string) *BlockChain { // miner's wallet pubK
   var lastHash []byte
 
   // Open database
-  opts := badger.DefaultOptions
-  opts.Dir = dbPath
-  opts.ValueDir = dbPath
+  opts := badger.DefaultOptions(path)
 
   db, err := openDB(path, opts) // error 1
   Handle(err) // Handle error 1
