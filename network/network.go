@@ -319,7 +319,7 @@ func HandleTx(request []byte, chain *blockchain.BlockChain) {
 	}
 
 	txData := payload.Transaction
-	tx := blockchain.DeserializeTransaction(txData)
+	tx := blockchain.DeserializeTx(txData)
 	memoryPool[hex.EncodeToString(tx.ID)] = tx
 
 	fmt.Printf("%s, %d", nodeAddress, len(memoryPool))
