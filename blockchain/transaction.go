@@ -62,16 +62,14 @@ func (tx *Transaction) Hash() []byte {
 
 /*--------------------------main---------------------------*/
 
-func CoinbaseTx(toAddress string, data string) *Transaction {
+func CoinbaseTx(toAddress, data string) *Transaction {
   // Set and print out default data
   if data == "" {
     // Create slice of byte which has a length of 24
     randData := make([]byte, 24)
     // Gen 24 random bytes
     _, err := rand.Read(randData)
-    if err != nil {
-      log.Panic(err)
-    }
+    Handle(err)
     data = fmt.Sprintf("%x", randData)
   }
 
@@ -112,11 +110,13 @@ func NewTransaction(w *wallet.Wallet, to string, amount int, UTXO *UTXOSet) *Tra
     }
   }
 
+  from := fmt.Sprintf("%s", w.Address())
+
   outputs = append(outputs, *NewTXOutput(amount, to))
 
   // Send change back to sender, i.e. new UTXO
   if spendable > amount {
-    outputs = append(outputs, TxOutput{spendable - amount, pubKeyHash})
+    outputs = append(outputs, *NewTXOutput(spendable-amount, from))
   }
 
   tx := Transaction{nil, inputs, outputs}
@@ -135,7 +135,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
   }
 
   for _, out := range tx.Outputs {
-    outputs = append(outputs, TxOutput{out .Value, out.PubKeyHash})
+    outputs = append(outputs, TxOutput{out.Value, out.PubKeyHash})
   }
 
   txCopy := Transaction{tx.ID, inputs, outputs}
@@ -198,7 +198,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 	  txCopy.Inputs[inId].PubKey = nil
 
     r := big.Int{}
-    s:= big.Int{}
+    s := big.Int{}
 
     sigLen := len(in.Sig)
     r.SetBytes(in.Sig[:(sigLen / 2)])
@@ -210,10 +210,8 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
     x.SetBytes(in.PubKey[:(keyLen / 2)])
 		y.SetBytes(in.PubKey[(keyLen / 2):])
 
-    dataToVerify := fmt.Sprintf("%x\n", txCopy)
-
-    rawPubKey := ecdsa.PublicKey{curve, &x, &y}
-    if ecdsa.Verify(&rawPubKey, []byte(dataToVerify)], &r, &s) == false {
+    rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
+    if ecdsa.Verify(&rawPubKey, txCopy.ID, &r, &s) == false {
       return false
     }
   }
