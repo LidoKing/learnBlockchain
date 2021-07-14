@@ -331,7 +331,7 @@ func HandleTx(request []byte, chain *blockchain.BlockChain) {
 			}
 		}
 	} else {
-		if len(memoryPool) >= 2 && len(mineAddress) > 0 {
+		if len(memoryPool) >= 1 && len(mineAddress) > 0 {
 			MineTx(chain)
 		}
 	}
@@ -341,7 +341,7 @@ func MineTx(chain *blockchain.BlockChain) {
 	var txs []*blockchain.Transaction
 
 	for id := range memoryPool {
-		fmt.Printf("tx: %s\n", memoryPool[id].ID)
+		fmt.Printf("tx: %x\n", memoryPool[id].ID)
 		tx := memoryPool[id]
 		if chain.VerifyTransaction(&tx) {
 			txs = append(txs, &tx)
