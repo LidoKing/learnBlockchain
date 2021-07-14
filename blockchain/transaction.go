@@ -164,15 +164,16 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTXs map[string]Tran
     // Set PubKey field for hashing
     // Actual tx is hashed with pubKey instead of pubKeyHash and with no signature
     txCopy.Inputs[inId].PubKey = prevTX.Outputs[in.Out].PubKeyHash
-    txCopy.ID = txCopy.Hash()
-    // Clear PubKey field to prevent unecessary errors
-    txCopy.Inputs[inId].PubKey = nil
 
-    r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopy.ID)
+    dataToSign := fmt.Sprintf("%x\n", txCopy)
+
+    r, s, err := ecdsa.Sign(rand.Reader, &privateKey, []byte(dataToSign))
     Handle(err)
     signature := append(r.Bytes(), s.Bytes()...)
 
     tx.Inputs[inId].Sig = signature
+    // Clear PubKey field to prevent unecessary errors
+    txCopy.Inputs[inId].PubKey = nil
   }
 }
 
