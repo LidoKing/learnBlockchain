@@ -195,8 +195,6 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
     prevTx := prevTXs[hex.EncodeToString(in.ID)]
 		txCopy.Inputs[inId].Sig = nil
 		txCopy.Inputs[inId].PubKey = prevTx.Outputs[in.Out].PubKeyHash
-		txCopy.ID = txCopy.Hash()
-	  txCopy.Inputs[inId].PubKey = nil
 
     r := big.Int{}
     s := big.Int{}
@@ -217,6 +215,8 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
     if ecdsa.Verify(&rawPubKey, []byte(dataToVerify), &r, &s) == false {
       return false
     }
+
+    txCopy.Inputs[inId].PubKey = nil
   }
   return true
 }
