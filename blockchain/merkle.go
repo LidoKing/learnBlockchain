@@ -44,25 +44,25 @@ func NewMerkleNode(left, right *MerkleNode, data []byte) *MerkleNode {
 func NewMerkleTree(data [][]byte) *MerkleTree {
   var nodes []MerkleNode
 
-  // Check if number of data is even
-  if len(data) % 2 != 0 {
-    // Make a copy of last datum
-    data = append(data, data[len(data) - 1])
-  }
-
   // Create base layer
   for _, datum := range data {
     node := NewMerkleNode(nil, nil, datum)
     nodes = append(nodes, *node)
   }
 
-  // len(data) gets number of upper layers to be built including root
-  for i := 0; i < len(data) / 2; i++ {
-    var layer []MerkleNode
+  if len(nodes) == 0 {
+    log.Panic("No merkel nodes")
+  }
 
+  // Loop will end after root node has been created as len(nodes) will be 1
+  for len(nodes) > 1 {
+
+    // Duplicate last node to make number of nodes even
     if len(nodes) % 2 != 0 {
       nodes = append(nodes, nodes[len(nodes) - 1])
     }
+
+    var layer []MerkleNode
 
     // 1st loop: tx1+tx2, 2nd loop: tx3+tx4, 3rd loop: tx5+tx6, ...
     for j := 0; j < len(nodes); j += 2 {
@@ -72,6 +72,7 @@ func NewMerkleTree(data [][]byte) *MerkleTree {
 
     nodes = layer
   }
+
 
   // nodes[0] gives merkle root
   tree := MerkleTree{&nodes[0]}
