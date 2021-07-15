@@ -1,6 +1,9 @@
 package blockchain
 
-import "crypto/sha256"
+import (
+  "crypto/sha256"
+  "log"
+)
 
 // Merkle tree:
 //                    root
