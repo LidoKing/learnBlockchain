@@ -54,7 +54,7 @@ func (ws *Wallets) LoadFile(nodeID string) error {
 }
 
 // Get wallets from database
-func CreateWallets(nodeID string) (*Wallets, error) {
+func LoadWallets(nodeID string) (*Wallets, error) {
   wallets := Wallets{}
   wallets.Wallets = make(map[string]*Wallet)
   err := wallets.LoadFile(nodeID)

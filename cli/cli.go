@@ -32,7 +32,7 @@ func (cli *CommandLine) printUsage() {
   // Lists all existing addresses
   fmt.Println(" 6. listaddresses")
   // Rebuilds the UTXO set
-  fmt.Println(" 7. reindexutxo")
+  // fmt.Println(" 7. reindexutxo")
   // Start node with ID specified in NODE_ID env. var., -miner indicates that the node is a miner node
   fmt.Println(" 8. startnode -miner ADDRESS")
 }
@@ -109,7 +109,7 @@ func (cli *CommandLine) send(from, to string, amount int, nodeID string, mineNow
   defer chain.Database.Close()
 
   // Retrieve wallets 'managed' by the node
-  wallets, err := wallet.CreateWallets(nodeID)
+  wallets, err := wallet.LoadWallets(nodeID)
   if err != nil {
     log.Panic(err)
   }
@@ -169,7 +169,7 @@ func (cli *CommandLine) printChain(nodeID string) {
 }
 
 func (cli *CommandLine) listAddresses(nodeID string) {
-  wallets, _ := wallet.CreateWallets(nodeID)
+  wallets, _ := wallet.LoadWallets(nodeID)
   addresses := wallets.GetAllAddresses()
 
   fmt.Println()
@@ -181,7 +181,7 @@ func (cli *CommandLine) listAddresses(nodeID string) {
 }
 
 func (cli *CommandLine) createWallet(nodeID string, num int) {
-  wallets, _ := wallet.CreateWallets(nodeID)
+  wallets, _ := wallet.LoadWallets(nodeID)
 
   for i := 0; i < num; i++ {
     address := wallets.AddWallet()
@@ -193,7 +193,7 @@ func (cli *CommandLine) createWallet(nodeID string, num int) {
   }
 }
 
-func (cli *CommandLine) reindexUTXO(nodeID string) {
+/*func (cli *CommandLine) reindexUTXO(nodeID string) {
   chain := blockchain.ContinueBlockChain(nodeID)
   defer chain.Database.Close()
   UTXOSet := blockchain.UTXOSet{chain}
@@ -204,7 +204,7 @@ func (cli *CommandLine) reindexUTXO(nodeID string) {
   fmt.Println()
   fmt.Printf("Done! There are %d transactions in the UTXO set. \n", count)
   fmt.Println()
-}
+}*/
 
 func (cli *CommandLine) startNode(nodeID, minerAddress string) {
   fmt.Printf("Starting Node %s\n", nodeID)
@@ -235,7 +235,7 @@ func (cli *CommandLine) Run() {
   printChainCmd := flag.NewFlagSet("print", flag.ExitOnError)
   createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
   listAddressesCmd := flag.NewFlagSet("listaddresses", flag.ExitOnError)
-  reindexUTXOCmd := flag.NewFlagSet("reindexutxo", flag.ExitOnError)
+  // reindexUTXOCmd := flag.NewFlagSet("reindexutxo", flag.ExitOnError)
   startNodeCmd := flag.NewFlagSet("startnode", flag.ExitOnError)
 
   // String() params: name, value, usage
@@ -274,9 +274,9 @@ func (cli *CommandLine) Run() {
     err := listAddressesCmd.Parse(os.Args[2:])
     blockchain.Handle(err)
 
-  case "reindexutxo":
+  /*case "reindexutxo":
     err := reindexUTXOCmd.Parse(os.Args[2:])
-    blockchain.Handle(err)
+    blockchain.Handle(err)*/
 
   case "startnode":
     err := startNodeCmd.Parse(os.Args[2:])
@@ -301,7 +301,7 @@ func (cli *CommandLine) Run() {
       createBlockchainCmd.Usage()
       runtime.Goexit()
     }
-  cli.createBlockChain(*createBlockchainAddress, nodeID)
+    cli.createBlockChain(*createBlockchainAddress, nodeID)
   }
 
   if printChainCmd.Parsed() {
@@ -324,9 +324,9 @@ func (cli *CommandLine) Run() {
     cli.listAddresses(nodeID)
   }
 
-  if reindexUTXOCmd.Parsed() {
+  /*if reindexUTXOCmd.Parsed() {
     cli.reindexUTXO(nodeID)
-  }
+  }*/
 
   if startNodeCmd.Parsed() {
     nodeID := os.Getenv("NODE_ID")
